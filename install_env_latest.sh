@@ -1,24 +1,27 @@
 #!/bin/bash
 # 
-# Installer for deepprecs environment
+# Installer for deepprecs_latest environment
 # 
 # Run: ./install.sh
 # 
 # M. Ravasi, 14/08/2022
 
-echo 'Creating deepprecs environment'
+echo 'Creating deepprecs_latest environment'
 
 # create conda env
-conda env create -f environment.yml
+conda env create -f environment_latest.yml
 source ~/miniconda3/etc/profile.d/conda.sh
-conda activate deepprecs
+conda activate deepprecs_latest
 conda env list
 echo 'Created and activated environment:' $(which python)
+
+# remove numba (temporary, due to collision with numpy version)
+rm -rf /home/ravasim/miniconda3/envs/deepprecs_latest/lib/python3.10/site-packages/numba*
 
 # install deepprecs package
 pip install -e .
 
-# check cupy works as expected
+# check cupy-torch work as expected
 echo 'Checking cupy version and running a command...'
 python -c 'import cupy as cp; print(cp.__version__); import torch; print(torch.__version__);  print(torch.cuda.get_device_name(torch.cuda.current_device())); print(torch.ones(10).to("cuda:0"))'
 

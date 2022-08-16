@@ -15,11 +15,18 @@ db.sqlite3
 # Build #
 build
 dist
-package.egg-info/
+.eggs/
+deepprecs.egg-info/
 
 # setuptools_scm generated  #
-package/version.py 
+deepprecs/version.py 
 
 # Development #
 .ipynb_checkpoints/
+
+# Data #
+data/
+
+# Figures #
+figures/
 
