@@ -5,11 +5,41 @@ import matplotlib.pyplot as plt
 from scipy.signal import filtfilt
 
 
-def patching(p, s, r, dt, npatch=(64, 64), njump=(16, 16), window=True,
+def patching(data, s, r, dt, npatch=(64, 64), njump=(16, 16), window=True,
              vel_sep=1500, toff=0.06, nsmoothwin=5, thresh=1e-4, augumentdirect=True):
     """Create patches from seismic data
+
+    Create a set of patches from a seismic dataset to be used as training data
+
+    Parameters
+    ----------
+    data : :obj:`numpy.ndarray`
+        Data of size :math:`n_s \times n_r \times n_t`
+    s : :obj:`numpy.ndarray`
+        Sources of size :math:`2 \times n_s`
+    r : :obj:`numpy.ndarray`
+        Receivers of size :math:`2 \times n_s`
+    dt : :obj:`float`
+        Time sampling
+    npatch : :obj:`tuple`, optional
+        Patch size
+    njump : :obj:`tuple`, optional
+        Jump between patches
+    window : :obj:`bool`, optional
+        Apply window to remove direct arrival
+    vel_sep : :obj:`float`, optional
+        Velocity at separation level
+    toff : :obj:`float`, optional
+        Time offset to apply to the direct wave window
+    nsmoothwin : :obj:`int`, optional
+        Number of samples of the smoothing filter to apply to direct wave window
+    thresh : :obj:`float`, optional
+        Treshold used to check if patch is empty and therefore discarded
+    augumentdirect : :obj:`bool`, optional
+        Add more patches around the direct arrival
+
     """
-    ns, nr, nt = p.shape
+    ns, nr, nt = data.shape
     nspatch, ntpatch = npatch
     nsjump, ntjump = njump
 
@@ -27,15 +57,15 @@ def patching(p, s, r, dt, npatch=(64, 64), njump=(16, 16), window=True,
                 win_[iwin[i]:, i] = 1
             win_ = filtfilt(np.ones(nsmoothwin) / float(nsmoothwin), 1, win_, axis=0)
             win_ = filtfilt(np.ones(nsmoothwin) / float(nsmoothwin), 1, win_, axis=1)
-            pwin = win_.T * p[:, irec, :]
+            datawin = win_.T * data[:, irec, :]
         else:
-            pwin = p[:, irec, :]
+            datawin = data[:, irec, :]
 
         # Create patches
         for isrc in range(0, ns - nspatch, nsjump):
             for it in range(0, nt - ntpatch, ntjump):
                 # extract patch
-                patch = pwin[isrc:isrc + nspatch, it:it + ntpatch]
+                patch = datawin[isrc:isrc + nspatch, it:it + ntpatch]
                 scale = np.max(np.abs(patch))
                 # check if non-empty patch and add to list of patches
                 if np.sum(np.abs(patch) < thresh) < 0.9 * nspatch * ntpatch:
@@ -54,7 +84,7 @@ def patching(p, s, r, dt, npatch=(64, 64), njump=(16, 16), window=True,
                     it = ntpatch // 2
                 if it > nt - ntpatch // 2:
                     it = nt - ntpatch // 2
-                patch = p[isrc - nspatch // 2:isrc + nspatch // 2,
+                patch = data[isrc - nspatch // 2:isrc + nspatch // 2,
                         irec, it - ntpatch // 2:it + ntpatch // 2]
                 scale = np.max(np.abs(patch))
                 # check if non-empty patch and add
@@ -78,6 +108,26 @@ def patching(p, s, r, dt, npatch=(64, 64), njump=(16, 16), window=True,
 
 def patch_scalings(data, Pop, npatches, npatch=(64, 64), plotflag=False, clip=0.1, device='cpu'):
     """Find patches scalings
+
+    Find scalings for each patch to apply after decoder
+
+    Parameters
+    ----------
+    data : :obj:`numpy.ndarray`
+        Data of size :math:`n_s \times n_r \times n_t`
+    Pop : :obj:`pylops.LinearOperator`
+        Patching operator
+    npatches : :obj:`tuple`
+        Number of patches along both axes
+    npatch : :obj:`tuple`, optional
+        Patch size
+    plotflag : :obj:`tuple`, optional
+        Display random patches
+    clip : :obj:`clip`, optional
+        Clipping used in display
+    device : :obj:`str`, optional
+        Device
+
     """
     nspatch, ntpatch = npatch
 

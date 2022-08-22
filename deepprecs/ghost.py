@@ -13,9 +13,9 @@ def deghosting(s, r, isrc, nt, dt, dz, vel_sep, toff, nsmoothwin, nxpad, ntaperg
     Parameters
     ----------
     s : :obj:`numpy.ndarray`
-        Sources of size ``2 \times n_s``
+        Sources of size :math:`2 \times n_s`
     r : :obj:`numpy.ndarray`
-        Receivers of size ``2 \times n_s``
+        Receivers of size :math:`2 \times n_s`
     isrc : :obj:`int`
         Index of source to use to create ghost operator
     nt : :obj:`int`
