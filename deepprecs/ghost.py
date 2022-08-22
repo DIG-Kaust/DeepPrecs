@@ -6,7 +6,41 @@ from pylops.optimization.sparsity import *
 
 
 def deghosting(s, r, isrc, nt, dt, dz, vel_sep, toff, nsmoothwin, nxpad, ntaperghost):
-    """Create deghosting operator
+    """Ghost operator
+
+    Create ghost operator
+
+    Parameters
+    ----------
+    s : :obj:`numpy.ndarray`
+        Sources of size ``2 \times n_s``
+    r : :obj:`numpy.ndarray`
+        Receivers of size ``2 \times n_s``
+    isrc : :obj:`int`
+        Index of source to use to create ghost operator
+    nt : :obj:`int`
+        Number of time samples
+    dt : :obj:`float`
+        Time sampling
+    dz : :obj:`float`
+        Depth sampling
+    vel_sep : :obj:`float`
+        Velocity at separation level
+    toff : :obj:`float`
+        Time offset to apply to the direct wave window
+    nsmoothwin : :obj:`int`
+        Number of samples of the smoothing filter to apply to direct wave window
+    nxpad : :obj:`int`
+        Number of samples to use to pad data along receiver axis prior to applying ghost operator
+    ntaperghost : :obj:`int`
+        Number of samples to use to taper data along receiver axis prior to applying ghost operator
+
+    Returns
+    -------
+    win : :obj:`numpy.ndarray`
+        Direct wave window
+    Dupop : :obj:`pylops.LinearOperator`
+        Ghost operator
     """
     nr = r.shape[1]
     nf = nt
