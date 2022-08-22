@@ -73,11 +73,27 @@ class LitAutoencoder(pl.LightningModule):
         Learning rate of Adam optimizer
     weight_decay : :obj:`float`, optional
         Weight decay of Adam optimizer
-
-
-    noise_std : :obj:`float`
+    betas : :obj:`tuple`, optional
+        Running average weights for Adam optimizer
+    adapt_learning : :obj:`bool`, optional
+        Use adaptive learning rate
+    lr_scheduler : :obj:`str`, optional
+        Learning rate scheduler name (must be `OnPlateau` or `OneCycle`)
+    lr_factor : :obj:`tuple`, optional
+        Factor by which the learning rate is reduced
+    lr_thresh : :obj:`tuple`, optional
+        Threshold for measuring the new optimum.
+    lr_patience : :obj:`tuple`, optional
+        Number of epochs with no improvement after which learning rate will be reduced
+    lr_max : :obj:`tuple`, optional
+        Upper learning rate boundaries in the cycle for each parameter group
+    noise_std : :obj:`float`, optional
         Noise standard deviation to add to inputs as a way
         of regularizing the training process
+    noise_std : :obj:`float`, optional
+        Percentage of input traces to be masked
+#   device : :obj:`str`, optional
+#         Device
 
     """
     def __init__(self, nh, nw, nenc, network, lossfunc, num_epochs, lossweights=None,
@@ -313,8 +329,13 @@ class LitAutoencoder(pl.LightningModule):
 
 class MetricsCallback(Callback):
     """PyTorch Lightning metric callback
-    """
 
+    Parameters
+    ----------
+    loss : :obj:`str`
+        Loss name (use same convention as in ``LitAutoencoder``)
+
+    """
     def __init__(self, loss=None):
         super().__init__()
         self.train_loss = []
@@ -345,6 +366,12 @@ class MetricsCallback(Callback):
 
 class PlottingCallback(Callback):
     """PyTorch Lightning plotting callback
+
+    Parameters
+    ----------
+    figdir : :obj:`str`
+        Directory path where to save figures
+
     """
 
     def __init__(self, figdir):
