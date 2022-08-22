@@ -37,11 +37,6 @@ class DataModule(LightningDataModule):
     batch_size : :obj:`int`, optional
         Batch size
 
-    Returns
-    -------
-    out : :obj:`torch.tensor`
-        Noisy input
-
     """
     def __init__(self, x_train, x_valid, batch_size=32):
         super().__init__()

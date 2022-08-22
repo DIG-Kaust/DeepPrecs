@@ -5,8 +5,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 
 from tqdm import tqdm_notebook as tqdm
-from torch.autograd import Variable
-from torch.utils.data import TensorDataset, DataLoader, Dataset
+from torch.utils.data import TensorDataset, DataLoader
 from sklearn.model_selection import train_test_split
 from deepprecs.utils import EarlyStopping, noise_input, SSIM_Loss, \
     WeightedMSE, loss_corr, loss_pearson, show_tensor_images
@@ -115,7 +114,7 @@ class Train():
             else:
                 # Assume a scheduler object is passed, if not it will break later
                 self.scheduler = self.lr_scheduler
-                    # early stopping (stop after no improvements greater
+        # early stopping (stop after no improvements greater
         # than a certain percentage of the previous loss)
         self.early_stop = early_stop
         if self.early_stop:

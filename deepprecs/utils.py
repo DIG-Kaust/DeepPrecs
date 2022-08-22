@@ -46,6 +46,20 @@ class EarlyStopping(object):
             self.is_better = lambda a, b: True
             self.step = lambda a: False
 
+    def _init_is_better(self):
+        if self.mode not in {'min', 'max'}:
+            raise ValueError('mode ' + self.mode + ' is unknown!')
+        if not self.percentage:
+            if self.mode == 'min':
+                self.is_better = lambda a, best: a < best - self.min_delta
+            if self.mode == 'max':
+                self.is_better = lambda a, best: a > best + self.min_delta
+        else:
+            if self.mode == 'min':
+                self.is_better = lambda a, best: a < best - (best * self.min_delta / 100)
+            if self.mode == 'max':
+                self.is_better = lambda a, best: a > best + (best * self.min_delta / 100)
+
     def step(self, metrics):
         if self.best is None:
             self.best = metrics
@@ -66,20 +80,6 @@ class EarlyStopping(object):
             return True
 
         return False
-
-    def _init_is_better(self):
-        if self.mode not in {'min', 'max'}:
-            raise ValueError('mode ' + self.mode + ' is unknown!')
-        if not self.percentage:
-            if self.mode == 'min':
-                self.is_better = lambda a, best: a < best - self.min_delta
-            if self.mode == 'max':
-                self.is_better = lambda a, best: a > best + self.min_delta
-        else:
-            if self.mode == 'min':
-                self.is_better = lambda a, best: a < best - (best * self.min_delta / 100)
-            if self.mode == 'max':
-                self.is_better = lambda a, best: a > best + (best * self.min_delta / 100)
 
 
 class MS_SSIM_Loss(MS_SSIM):

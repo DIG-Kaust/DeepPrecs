@@ -23,6 +23,7 @@ deepprecs/version.py
 
 # Development #
 .ipynb_checkpoints/
+lightning_logs/
 
 # Data #
 data/
