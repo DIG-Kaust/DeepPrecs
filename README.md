@@ -1,4 +1,4 @@
-![LOGO](https://github.com/DIG-Kaust/DeepPrecs/blob/master/logo.png)
+![LOGO](https://github.com/DIG-Kaust/DeepPrecs/blob/main/logo.png)
 
 ``deepprecs`` is a Python library aimed at providing the fundamental building blocks to solve Inverse Problems with 
 the aid of Deep Preconditioners.
