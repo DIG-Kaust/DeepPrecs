@@ -1,10 +1,12 @@
 ![LOGO](https://github.com/DIG-Kaust/DeepPrecs/blob/main/logo.png)
 
 ``deepprecs`` is a Python library aimed at providing the fundamental building blocks to solve Inverse Problems with 
-the aid of Deep Preconditioners.
+the aid of Deep Preconditioners. ``deepprecs`` are implemented on top of Pytorch-Lightning (for network training) and 
+PyLops (for physical operators).
 
 For more details refer to the accompanying paper: **Deep Preconditioners and their application to seismic wavefield processing -
 Ravasi M.** submitted to Frontiers in Earth Science.
+
 
 ## Project structure
 This repository is organized as follows:
@@ -14,11 +16,13 @@ This repository is organized as follows:
 * :open_file_folder: **notebooks**: set of jupyter notebooks applying deep preconditioners to a number of problems of increasing complexity;
 * :open_file_folder: **scripts**: set of python scripts used to run seismic interpolation experiments in batch mode.
 
+
 ## Notebooks
 The following notebooks are provided:
 
-- :orange_book: ``X1.ipynb``: notebook performing ...;
-- :orange_book: ``X2.ipynb``: notebook performing ...
+- :orange_book: ``sinusoids/Sinusoid_reconstruction_pl.ipynb``: notebook performing 1D interpolation with deep precondtioners;
+- :orange_book: ``syncline/Syncline.ipynb``: notebook performing deghosting of a Syncline shot gather with deep precondtioners;
+- :orange_book: ``marmousi/Marmousi_deghosting_pl.ipynb``: notebook performing deghosting of a Marmousi shot gather with deep precondtioners;
 
 
 ## Getting started :space_invader: :robot:
