@@ -1,11 +1,22 @@
-import numpy as np
 import torch
 import torch.nn as nn
 
 
 def act(act_fun='LeakyReLU'):
-    """Easy selection of activation function by passing string or
-    module (e.g. nn.ReLU)
+    """Activation function
+
+    Easy selection of activation functions by passing string or module (e.g. nn.ReLU)
+
+    Parameters
+    ----------
+    act_fun : :obj:`str` or :obj:`torch.nn`
+        Activation function name or function signature
+
+    Returns
+    -------
+    act_fun : :obj:`torch.nn`
+        Activation function signature
+
     """
     if isinstance(act_fun, str):
         if act_fun == 'LeakyReLU':
@@ -23,7 +34,25 @@ def act(act_fun='LeakyReLU'):
     else:
         return act_fun()
 
+
 def downsample(stride=2, downsample_mode='max'):
+    """Downsample operator
+
+    Create a downsampling layer
+
+    Parameters
+    ----------
+    stride : :obj:`int`
+        Stride of downsampling operation
+    downsample_mode : :obj:`str`
+        Mode of downsampling operation (``avg`` or ``max``)
+
+    Returns
+    -------
+    downsampler : :obj:`torch.nn`
+        Downsampling layer
+
+    """
     if downsample_mode == 'avg':
         downsampler = nn.AvgPool2d(stride, stride)
     elif downsample_mode == 'max':
@@ -35,7 +64,35 @@ def downsample(stride=2, downsample_mode='max'):
 
 def Conv2d_Block(in_f, out_f, kernel_size, stride=1, bias=True, bnorm=True,
                  act_fun='LeakyReLU', dropout=None):
-    """2d Convolutional Block (conv, dropout, batchnorm, activation)
+    """2D Convolutional Block
+
+    Create 2D Convolutional Block composed of convolution layer,
+    dropout (optional), batch normalization (optional), and activation
+
+    Parameters
+    ----------
+    in_f : :obj:`int`
+        Input size
+    out_f : :obj:`int`
+        Output size
+    kernel_size : :obj:`int`
+        Kernel size
+    stride : :obj:`int`, optional
+        Stride
+    bias : :obj:`bool`, optional
+        Add bias to convolution layer
+    bnorm : :obj:`int`, optional
+        Apply batch normalization
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    dropout : :obj:`float`, optional
+        Percentage of dropout (if ``None``, dropout is not applied)
+
+    Returns
+    -------
+    block : :obj:`torch.nn`
+        2D Convolutional Block
+
     """
     to_pad = int((kernel_size - 1) / 2) # to mantain input size
 
@@ -52,7 +109,35 @@ def Conv2d_Block(in_f, out_f, kernel_size, stride=1, bias=True, bnorm=True,
 
 def ConvTranspose2d_Block(in_f, out_f, kernel_size, stride=2, bias=True, bnorm=True,
                           act_fun='LeakyReLU', dropout=None):
-    """2d Transpose Convolutional Block (transpconv, batchnorm, activation)
+    """2D Transpose Convolutional Block
+
+    Create 2D Transpose Convolutional Block composed of transpose convolution layer,
+    dropout (optional), batch normalization (optional), and activation
+
+    Parameters
+    ----------
+    in_f : :obj:`int`
+        Input size
+    out_f : :obj:`int`
+        Output size
+    kernel_size : :obj:`int`
+        Kernel size
+    stride : :obj:`int`, optional
+        Stride
+    bias : :obj:`bool`, optional
+        Add bias to convolution layer
+    bnorm : :obj:`int`, optional
+        Apply batch normalization
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    dropout : :obj:`float`, optional
+        Percentage of dropout (if ``None``, dropout is not applied)
+
+    Returns
+    -------
+    block : :obj:`torch.nn`
+        2D Transpose Convolutional Block
+
     """
     block = [nn.ConvTranspose2d(in_f, out_f, kernel_size, stride, bias=bias), ]
     if dropout is not None:
@@ -67,7 +152,36 @@ def ConvTranspose2d_Block(in_f, out_f, kernel_size, stride=2, bias=True, bnorm=T
 
 def UpsampleConv2d_Block(in_f, out_f, kernel_size, stride=2, bias=True, bnorm=True,
                          act_fun='LeakyReLU', dropout=None):
-    """2d Upsampling and Convolutional Block (upsample, conv, batchnorm, activation)
+    """2D Upsampling Convolutional Block
+
+    Create 2D Upsample Convolutional Block composed of upsampling layer,
+    convolutional layer, dropout (optional), batch normalization (optional),
+    and activation
+
+    Parameters
+    ----------
+    in_f : :obj:`int`
+        Input size
+    out_f : :obj:`int`
+        Output size
+    kernel_size : :obj:`int`
+        Kernel size
+    stride : :obj:`int`, optional
+        Stride
+    bias : :obj:`bool`, optional
+        Add bias to convolution layer
+    bnorm : :obj:`int`, optional
+        Apply batch normalization
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    dropout : :obj:`float`, optional
+        Percentage of dropout (if ``None``, dropout is not applied)
+
+    Returns
+    -------
+    block : :obj:`torch.nn`
+        2D Upsampling Convolutional Block
+
     """
     to_pad = int((kernel_size - 1) / 2)
 
@@ -80,9 +194,40 @@ def UpsampleConv2d_Block(in_f, out_f, kernel_size, stride=2, bias=True, bnorm=Tr
     block = nn.Sequential(*block)
     return block
 
+
 def Upsample1DConv2d_Block(in_f, out_f, kernel_size, stride=2, bias=True, bnorm=True,
                          act_fun='LeakyReLU', dropout=None):
-    """1d Upsampling along first direction and Convolutional Block (upsample, conv, batchnorm, activation)
+    """1D Upsampling Convolutional Block
+
+    Create 1D Upsample Convolutional Block composed of upsampling layer,
+    convolutional layer, dropout (optional), batch normalization (optional),
+    and activation. Here upsampling is only performed on the first dimension
+    of the 2D input.
+
+    Parameters
+    ----------
+    in_f : :obj:`int`
+        Input size
+    out_f : :obj:`int`
+        Output size
+    kernel_size : :obj:`int`
+        Kernel size
+    stride : :obj:`int`, optional
+        Stride
+    bias : :obj:`bool`, optional
+        Add bias to convolution layer
+    bnorm : :obj:`int`, optional
+        Apply batch normalization
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    dropout : :obj:`float`, optional
+        Percentage of dropout (if ``None``, dropout is not applied)
+
+    Returns
+    -------
+    block : :obj:`torch.nn`
+        1D Upsampling Convolutional Block
+
     """
     to_pad = int((kernel_size - 1) / 2)
 
@@ -97,10 +242,35 @@ def Upsample1DConv2d_Block(in_f, out_f, kernel_size, stride=2, bias=True, bnorm=
 
 
 class ResNetBlock(nn.Module):
-    def __init__(self, in_f, out_f, kernel_size, stride=1, act_fun='LeakyReLU',
-                 expansion=1):
-        """Residual Block (See https://towardsdatascience.com/residual-network-implementing-resnet-a7da63c7b278)
-        """
+    """Residual Block
+
+    Create Residual Block (See https://towardsdatascience.com/residual-network-implementing-resnet-a7da63c7b278)
+    composed of two 2D convolutional blocks and a skip connection.
+
+    Parameters
+    ----------
+    in_f : :obj:`int`
+        Input size
+    out_f : :obj:`int`
+        Output size
+    kernel_size : :obj:`int`
+        Kernel size
+    stride : :obj:`int`, optional
+        Stride
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    expansion : :obj:`bool`, optional
+        Multiplicative factor to the number of output channels (can be used to both increase or reduce
+        the overall number of output channels
+
+    Returns
+    -------
+    block : :obj:`torch.nn`
+        Residual Block
+
+    """
+    def __init__(self, in_f, out_f, kernel_size, stride=1,
+                 act_fun='LeakyReLU', expansion=1):
         super().__init__()
 
         self.blocks = nn.Sequential(
@@ -124,9 +294,31 @@ class ResNetBlock(nn.Module):
 
 
 class MultiResBlock(nn.Module):
+    """Multiresolution Block
+
+    Create Multiresolution Block (See https://github.com/polimi-ispl/deep_prior_interpolation/)
+    composed of three concatenated multi-scale 2D convolutional blocks and skip connection.
+
+    Parameters
+    ----------
+    U : :obj:`int`
+        First parameter defining the size of each convolutional block
+    f_in : :obj:`int`
+        Input size
+    alpha : :obj:`float`, optional
+        Second parameter defining the size of each convolutional block
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    bias : :obj:`bool`, optional
+        Add bias to convolution layer
+
+    Returns
+    -------
+    block : :obj:`torch.nn`
+        Multiresolution Block
+
+    """
     def __init__(self, U, f_in, alpha=1.67, act_fun='LeakyReLU', bias=True):
-        """Multiresolution block (See https://github.com/polimi-ispl/deep_prior_interpolation/)
-        """
         super(MultiResBlock, self).__init__()
         W = alpha * U
         self.out_dim = int(W * 0.167) + int(W * 0.333) + int(W * 0.5)
@@ -155,8 +347,38 @@ class MultiResBlock(nn.Module):
 def Conv2d_ChainOfLayers(in_f, kernel_size, nfilts, nlayers,
                          stride=1, bias=True, act_fun='LeakyReLU',
                          dropout=None, downstride=2, downmode='max'):
-    """2d Convolutional Block with multiple convolution layers followed by
-    2d Downsampling
+    """Stack of 2D Convolutional layers followed by downsampling
+
+    Create a stack of 2D Convolutional layers followed by downsampling
+
+    Parameters
+    ----------
+    in_f : :obj:`int`
+        Input size
+    kernel_size : :obj:`int`
+        Kernel size
+    nfilts : :obj:`int`
+        Number of filters per layer (also output size)
+    nlayers : :obj:`int`
+        Number of layers
+    stride : :obj:`int`, optional
+        Stride
+    bias : :obj:`bool`, optional
+        Add bias to convolution layer
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    dropout : :obj:`float`, optional
+        Percentage of dropout (if ``None``, dropout is not applied)
+    downstride : :obj:`int`
+        Stride of downsampling operation
+    downmode : :obj:`str`
+        Mode of downsampling operation (``avg`` or ``max``)
+
+    Returns
+    -------
+    model : :obj:`torch.nn`
+        Model
+
     """
     conv_layers = []
     for ilayer in range(nlayers):
@@ -172,8 +394,38 @@ def Conv2d_ChainOfLayers(in_f, kernel_size, nfilts, nlayers,
 def ConvTranspose2d_ChainOfLayers(in_f, kernel_size, nfilts, nlayers,
                                   stride=1, bias=True, act_fun='LeakyReLU',
                                   dropout=None, upstride=2, upmode='convtransp'):
-    """2d Transpose Convolutional Block with multiple convolution layers 
-    (first is ConvTranspose2d and others are Conv2d)
+    """Stack of 2D Convolutional layers preceeded by transpose convolution or upsampling
+
+    Create a stack of 2D Convolutional layers preceeded by transpose convolution or upsampling
+
+    Parameters
+    ----------
+    in_f : :obj:`int`
+        Input size
+    kernel_size : :obj:`int`
+        Kernel size
+    nfilts : :obj:`int`
+        Number of filters per layer (also output size)
+    nlayers : :obj:`int`
+        Number of layers
+    stride : :obj:`int`, optional
+        Stride
+    bias : :obj:`bool`, optional
+        Add bias to convolution layer
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    dropout : :obj:`float`, optional
+        Percentage of dropout (if ``None``, dropout is not applied)
+    upstride : :obj:`int`
+        Stride of upsampling operation
+    upmode : :obj:`str`
+        Mode of upsampling operation (``convtransp`` or ``upsample``)
+
+    Returns
+    -------
+    model : :obj:`torch.nn`
+        Model
+
     """
     if upmode == 'convtransp':
         convtransp = ConvTranspose2d_Block(in_f, nfilts, kernel_size-1,
@@ -199,11 +451,40 @@ def ConvTranspose2d_ChainOfLayers1(in_f, kernel_size, nfilts, nlayers,
                                    stride=1, bias=True,
                                    act_fun='LeakyReLU', dropout=None,
                                    upstride=2, upmode='convtransp'):
-    """2d Transpose Convolutional Block with multiple convolution layers
-    (first is ConvTranspose2d and others are Conv2d).
+    """Stack of 2D Convolutional layers preceeded by transpose convolution or upsampling
 
-    Note that the number of layers is changed at the last step instead
-    of the first as done in the ConvTranspose2d_ChainOfLayers module
+    Create a stack of 2D Convolutional layers preceeded by transpose convolution or upsampling
+    Note that the number of layers is changed at the last step instead of the first as done in the
+    `ConvTranspose2d_ChainOfLayers` module.
+
+    Parameters
+    ----------
+    in_f : :obj:`int`
+        Input size
+    kernel_size : :obj:`int`
+        Kernel size
+    nfilts : :obj:`int`
+        Number of filters per layer (also output size)
+    nlayers : :obj:`int`
+        Number of layers
+    stride : :obj:`int`, optional
+        Stride
+    bias : :obj:`bool`, optional
+        Add bias to convolution layer
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    dropout : :obj:`float`, optional
+        Percentage of dropout (if ``None``, dropout is not applied)
+    upstride : :obj:`int`
+        Stride of upsampling operation
+    upmode : :obj:`str`
+        Mode of upsampling operation (``convtransp`` or ``upsample``)
+
+    Returns
+    -------
+    model : :obj:`torch.nn`
+        Model
+
     """
     if upmode == 'convtransp':
         convtransp = ConvTranspose2d_Block(in_f, in_f, kernel_size - 1,
@@ -232,13 +513,40 @@ def ConvTranspose2d_ChainOfLayers1(in_f, kernel_size, nfilts, nlayers,
 
 def ResNet_Layer(in_f, out_f, kernel_size, act_fun='LeakyReLU',
                  expansion=1, nlayers=1, downstride=2, downmode='max'):
-    """
-    A ResNet layer composed by nlayers blocks stacked one after the other
+    """ResNet Layer
 
-    Note that if in_f and out_f are different the width and height are
-    automatically downsampled. Expansion allow to go from in_f to out_f*expansion
-    whilst keeping the intermediate layer to out_f (and it is only applied to
-    the first layer)
+    Create a ResNet layer composed by multiple ResNet blocks blocks stacked one after the other,
+    optionally followed by a downsampling layer.
+
+    Note that if in_f and out_f are different the width and height are automatically downsampled.
+    Expansion allow to go from in_f to out_f*expansion whilst keeping the intermediate layer to
+    out_f (and it is only applied to the first layer).
+
+    Parameters
+    ----------
+    in_f : :obj:`int`
+        Input size
+    out_f : :obj:`int`
+        Output size
+    kernel_size : :obj:`int`
+        Kernel size
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    expansion : :obj:`bool`, optional
+        Multiplicative factor to the number of output channels (can be used to both increase or reduce
+        the overall number of output channels
+    nlayers : :obj:`int`
+        Number of layers
+    downstride : :obj:`int`, optional
+        Stride of downsampling operation (if 1, downsampling is not added)
+    downmode : :obj:`str`
+        Mode of downsampling operation (``avg`` or ``max``)
+
+    Returns
+    -------
+    model : :obj:`torch.nn`
+        Model
+
     """
     stride = 2 if in_f != out_f else 1
     res = nn.Sequential(
@@ -258,9 +566,35 @@ def ResNet_Layer(in_f, out_f, kernel_size, act_fun='LeakyReLU',
 
 def ResNetTranspose_Layer(in_f, out_f, kernel_size, act_fun='LeakyReLU',
                           expansion=1, nlayers=1, upstride=2):
-    """
-    A ResNet layer composed by nlayers blocks stacked one after the other
-    preceeed by upsampling
+    """ResNet Layer
+
+    Create a ResNet layer composed by multiple ResNet blocks blocks stacked one after,
+    preceeded by an upsampling layer.
+
+    Note that if in_f and out_f are different the width and height are automatically downsampled.
+    Expansion allow to go from in_f to out_f*expansion whilst keeping the intermediate layer to
+    out_f (and it is only applied to the first layer)
+
+    Parameters
+    ----------
+    in_f : :obj:`int`
+        Input size
+    out_f : :obj:`int`
+        Output size
+    kernel_size : :obj:`int`
+        Kernel size
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    nlayers : :obj:`int`
+        Number of layers
+    upstride : :obj:`int`
+        Stride of upsampling operation
+
+    Returns
+    -------
+    model : :obj:`torch.nn`
+        Model
+
     """
     upsamples = nn.UpsamplingBilinear2d(scale_factor=upstride)
 
@@ -280,6 +614,33 @@ def ResNetTranspose_Layer(in_f, out_f, kernel_size, act_fun='LeakyReLU',
 
 def MultiRes_Layer(U, f_in, alpha=1.67, act_fun='LeakyReLU', bias=True,
                    downstride=2, downmode='max'):
+    """Multires Layer with downsampling
+
+    Create a Multires layer followed by a downsampling layer.
+
+    Parameters
+    ----------
+    U : :obj:`int`
+        First parameter defining the size of each convolutional block
+    f_in : :obj:`int`
+        Input size
+    alpha : :obj:`float`, optional
+        Second parameter defining the size of each convolutional block
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    bias : :obj:`bool`, optional
+        Add bias to convolution layer
+    downstride : :obj:`int`, optional
+        Stride of downsampling operation
+    downmode : :obj:`str`
+        Mode of downsampling operation (``avg`` or ``max``)
+
+    Returns
+    -------
+    model : :obj:`torch.nn`
+        Model
+
+    """
     mres = MultiResBlock(U, f_in, alpha=alpha, act_fun=act_fun, bias=bias)
     out_dim = mres.out_dim
     downsamples = downsample(stride=downstride, downsample_mode=downmode)
@@ -291,6 +652,31 @@ def MultiRes_Layer(U, f_in, alpha=1.67, act_fun='LeakyReLU', bias=True,
 
 def MultiResTranspose_Layer(U, f_in, alpha=1.67, act_fun='LeakyReLU', bias=True,
                             upstride=2):
+    """Multires Layer with upsampling
+
+    Create a Multires layer preceeded by an upsampling layer.
+
+    Parameters
+    ----------
+    U : :obj:`int`
+        First parameter defining the size of each convolutional block
+    f_in : :obj:`int`
+        Input size
+    alpha : :obj:`float`, optional
+        Second parameter defining the size of each convolutional block
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    bias : :obj:`bool`, optional
+        Add bias to convolution layer
+    upstride : :obj:`int`, optional
+        Stride of upstride operation
+
+    Returns
+    -------
+    model : :obj:`torch.nn`
+        Model
+
+    """
     upsamples = nn.UpsamplingBilinear2d(scale_factor=upstride)
     mres = MultiResBlock(U, f_in, alpha=alpha, act_fun=act_fun, bias=bias)
     out_dim = mres.out_dim
@@ -298,434 +684,3 @@ def MultiResTranspose_Layer(U, f_in, alpha=1.67, act_fun='LeakyReLU', bias=True,
 
     model = nn.Sequential(*conv_layers)
     return model, out_dim
-
-
-class Autoencoder(nn.Module):
-    """Template AutoEncoder module
-    """
-    def __init__(self):
-        super(Autoencoder, self).__init__()
-
-    def encode(self, x):
-        x = self.enc(x)
-        if self.conv11:
-            x = self.c11e(x)
-        x = x.view([x.size(0), self.nfiltslatent * self.nhlatent * self.nwlatent])
-        x = self.le(x)
-        if self.reluflag_enc:
-            x = act('ReLU')(x)
-        elif self.tanhflag_enc:
-            x = act('Tanh')(x)
-        return x
-
-    def decode(self, x):
-        x = self.ld(x)
-        if self.reluflag_dec:
-            x = act('ReLU')(x)
-        x = x.view([x.size(0), 2 * self.nfiltslatent, self.nhlatent, self.nwlatent])
-        if self.conv11:
-            x = self.c11d(x)
-        x = self.dec(x)
-        if self.tanhflag:
-            x = self.tanh(x)
-        return x
-
-    def restricted_decode(self, x):
-        x = self.decode(x)
-        x = x.view([-1])
-        x = self.restriction.apply(x)
-        return x
-
-    def patched_restricted_decode(self, x):
-        x = x.view([self.npatches, self.nenc])
-        xdec = self.decode(x)
-        #if self.superres:
-        #    xdec = xdec[:, :, ::2]
-        x = self.patchesscaling * xdec
-        x = x.view([-1])
-        x = self.patcher.apply(x)
-        x = self.restriction.apply(x)
-        return x, xdec
-
-    def patched_decode(self, x):
-        x = x.view([self.npatches, self.nenc])
-        xdec = self.decode(x)
-        x = self.patchesscaling * xdec
-        x = x.view([-1])
-        x = self.patcher.apply(x)
-        return x, xdec
-
-    def patched_forward(self, x, intermediate=False):
-        # make patches
-        x = self.depatcher.apply(x)
-        x = x.view([self.npatches, 1, self.nh, self.nw])
-        xsc = x / self.patchesscaling
-        # pass through network
-        xdec = self.forward(xsc)
-        # make back into unique data
-        x = self.patchesscaling * xdec
-        x = x.view([-1])
-        x = self.patcher.apply(x)
-        if not intermediate:
-            return x
-        else:
-            return x, xsc, xdec
-
-    def forward(self, x):
-        x = self.encode(x)
-        x = self.decode(x)
-        return x
-
-
-class AutoencoderBase(Autoencoder):
-    """Base AutoEncoder module
-    """
-    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels,
-                 restriction,
-                 convbias=True, act_fun='LeakyReLU', dropout=None, downstride=2,
-                 downmode='max', upmode='convtransp', bnormlast=True,
-                 relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
-                 patcher=None, depatcher=None, npatches=None, patchesscaling=None,
-                 superres=False, conv11=False, conv11size=1):
-        super(AutoencoderBase, self).__init__()
-        self.nh, self.nw = nh, nw
-        self.nhlatent = nh // (2 ** nlevels)
-        self.nwlatent = nw // (2 ** nlevels)
-        self.nenc = nenc
-        self.restriction = restriction
-        self.patcher = patcher
-        self.depatcher = depatcher
-        self.npatches = npatches
-        self.patchesscaling = patchesscaling
-        self.reluflag_enc = relu_enc
-        self.tanhflag_enc = tanh_enc
-        self.reluflag_dec = relu_dec
-        self.tanhflag = tanh_final
-        self.superres = superres
-        self.conv11 = conv11
-        self.conv11size = conv11size # force to reduce to a user-defined number of channels (1 as default)
-
-        # define kernel sizes
-        if isinstance(kernel_size, int):
-            kernel_size = [kernel_size] * nlevels
-
-        # encoder convolutions
-        nfilts = [1, ] + [nfilts * (2 ** i) for i in range(nlevels)]
-        conv_blocks = [Conv2d_ChainOfLayers(in_f, kernel_size=ks,
-                                            nfilts=out_f, nlayers=nlayers,
-                                            stride=1, bias=convbias,
-                                            act_fun=act_fun,
-                                            dropout=dropout,
-                                            downstride=downstride,
-                                            downmode=downmode)
-                       for in_f, out_f, ks in zip(nfilts, nfilts[1:], kernel_size)]
-        self.enc = nn.Sequential(*conv_blocks)
-
-        # conv 1x1 layers
-        if self.conv11:
-            self.c11e = Conv2d_Block(nfilts[-1], conv11size,
-                                     1, stride=1,
-                                     bias=convbias, bnorm=bnormlast,
-                                     act_fun=act_fun,
-                                     dropout=dropout)
-            self.c11d = Conv2d_Block(2 * conv11size, 2 * nfilts[-1],
-                                     1, stride=1,
-                                     bias=convbias, bnorm=bnormlast,
-                                     act_fun=act_fun,
-                                     dropout=dropout)
-
-        # dense layers
-        if self.conv11:
-            self.nfiltslatent = conv11size
-        else:
-            self.nfiltslatent = nfilts[-1]
-        self.le = nn.Linear(self.nfiltslatent * self.nhlatent * self.nwlatent, nenc)
-        self.ld = nn.Linear(nenc, (2 * self.nfiltslatent) * self.nhlatent * self.nwlatent)
-        self.tanh = nn.Tanh()
-        
-        # decoder convolutions
-        # self.nfiltslatent = nfilts[-1]
-        nfilts = nfilts[1:] + [nfilts[-1] * 2, ]
-        conv_blocks = [ConvTranspose2d_ChainOfLayers(in_f, kernel_size=ks,
-                                                     nfilts=out_f, nlayers=nlayers,
-                                                     stride=1, bias=convbias,
-                                                     act_fun=act_fun,
-                                                     dropout=dropout,
-                                                     upstride=downstride,
-                                                     upmode=upmode)
-                       for in_f, out_f, ks in zip(nfilts[::-1], nfilts[::-1][1:], kernel_size[::-1])]
-        conv_blocks.append(Conv2d_Block(nfilts[0], 1,
-                                        kernel_size[0], stride=1,
-                                        bias=convbias, bnorm=bnormlast,
-                                        act_fun=None,
-                                        dropout=dropout))
-        self.dec = nn.Sequential(*conv_blocks)
-        self.restriction = restriction
-
-
-class AutoencoderSymmetric(Autoencoder):
-    """AutoEncoder module with symmetry between encoder and decoder
-    (AutoencoderBase has some asymmetry)
-    """
-    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels,
-                 restriction,
-                 convbias=True, act_fun='LeakyReLU', dropout=None, downstride=2,
-                 downmode='max', upmode='convtransp', bnormlast=True,
-                 relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
-                 patcher=None, depatcher=None, npatches=None, patchesscaling=None,
-                 superres=False):
-        super(AutoencoderSymmetric, self).__init__()
-        self.nh, self.nw = nh, nw
-        self.nhlatent = nh // (2 ** nlevels)
-        self.nwlatent = nw // (2 ** nlevels)
-        self.nenc = nenc
-        self.restriction = restriction
-        self.patcher = patcher
-        self.depatcher = depatcher
-        self.npatches = npatches
-        self.patchesscaling = patchesscaling
-        self.reluflag_enc = relu_enc
-        self.tanhflag_enc = tanh_enc
-        self.reluflag_dec = relu_dec
-        self.tanhflag = tanh_final
-        self.superres = superres
-        self.conv11 = False
-
-        # define kernel sizes
-        if isinstance(kernel_size, int):
-            kernel_size = [kernel_size] * nlevels
-
-        # encoder convolutions
-        nfilts = [1, ] + [nfilts * (2 ** i) for i in range(nlevels)]
-        self.nfiltslatent = nfilts[-1]
-        conv_blocks = [Conv2d_ChainOfLayers(in_f, kernel_size=ks,
-                                            nfilts=out_f, nlayers=nlayers,
-                                            stride=1, bias=convbias,
-                                            act_fun=act_fun,
-                                            dropout=dropout,
-                                            downstride=downstride,
-                                            downmode=downmode)
-                        for in_f, out_f, ks in zip(nfilts, nfilts[1:], kernel_size)]
-
-        self.enc = nn.Sequential(*conv_blocks)
-
-        # dense layers
-        self.le = nn.Linear(self.nfiltslatent * self.nhlatent * self.nwlatent, nenc)
-        self.ld = nn.Linear(nenc, self.nfiltslatent * self.nhlatent * self.nwlatent)
-        self.tanh = nn.Tanh()
-
-        # decoder convolutions
-        #self.nfiltslatent = nfilts[-1]
-        nfilts = [nfilts[1]] + nfilts[1:]
-        conv_blocks = [ConvTranspose2d_ChainOfLayers1(in_f, kernel_size=ks,
-                                                      nfilts=out_f,
-                                                      nlayers=nlayers-1 if iblock < len(nfilts)-2 else nlayers-2,
-                                                      stride=1, bias=convbias,
-                                                      act_fun=act_fun,
-                                                      dropout=dropout,
-                                                      upstride=downstride,
-                                                      upmode=upmode)
-                       for iblock, (in_f, out_f, ks) in enumerate(zip(nfilts[::-1], nfilts[::-1][1:], kernel_size[::-1]))]
-        if superres:
-            conv_blocks.append(ConvTranspose2d_ChainOfLayers1(nfilts[0], kernel_size=kernel_size[0],
-                                                              nfilts=nfilts[0],
-                                                              nlayers=nlayers-2,
-                                                              stride=1, bias=convbias,
-                                                              act_fun=act_fun,
-                                                              dropout=dropout,
-                                                              upstride=downstride,
-                                                              upmode='upsample1d'))
-        conv_blocks.append(Conv2d_Block(nfilts[0], 1,
-                                        kernel_size[0], stride=1,
-                                        bias=convbias, bnorm=bnormlast,
-                                        act_fun=None,
-                                        dropout=dropout))
-        self.dec = nn.Sequential(*conv_blocks)
-        self.restriction = restriction
-
-    def decode(self, x):
-        x = self.ld(x)
-        if self.reluflag_dec:
-            x = act('ReLU')(x)
-        x = x.view([x.size(0), self.nfiltslatent, self.nhlatent, self.nwlatent])
-        x = self.dec(x)
-        if self.tanhflag:
-            x = self.tanh(x)
-        return x
-
-
-class AutoencoderRes(Autoencoder):
-    """ResNet AutoEncoder module
-    """
-    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels,
-                 restriction,
-                 convbias=True, act_fun='LeakyReLU', dropout=None,
-                 downstride=1,
-                 downmode='max', upmode='convtransp', bnormlast=True,
-                 relu_enc=False, tanh_enc=False, relu_dec=False,
-                 tanh_final=False,
-                 patcher=None, depatcher=None, npatches=None, patchesscaling=None,
-                 superres=False, conv11=False, conv11size=1):
-        super(AutoencoderRes, self).__init__()
-        self.nh, self.nw = nh, nw
-        self.nhlatent = nh // (2 ** nlevels)
-        self.nwlatent = nw // (2 ** nlevels)
-        self.nenc = nenc
-        self.restriction = restriction
-        self.patcher = patcher
-        self.depatcher = depatcher
-        self.npatches = npatches
-        self.patchesscaling = patchesscaling
-        self.reluflag_enc = relu_enc
-        self.tanhflag_enc = tanh_enc
-        self.reluflag_dec = relu_dec
-        self.tanhflag = tanh_final
-        self.superres = superres
-        self.conv11 = conv11
-
-        # define kernel sizes
-        if isinstance(kernel_size, int):
-            kernel_size = [kernel_size] * nlevels
-
-        # encoder convolutions
-        nfilts = [1, ] + [nfilts * (2 ** i) for i in range(nlevels)]
-        self.nfiltslatent = nfilts[-1]
-        conv_blocks = [ResNet_Layer(in_f, out_f,
-                                    kernel_size=ks,
-                                    act_fun=act_fun,
-                                    expansion=1,
-                                    nlayers=nlayers,
-                                    downstride=downstride,
-                                    downmode=downmode)
-                       for in_f, out_f, ks in zip(nfilts, nfilts[1:], kernel_size)]
-        self.enc = nn.Sequential(*conv_blocks)
-
-        # conv 1x1 layers
-        if self.conv11:
-            self.c11e = Conv2d_Block(nfilts[-1], 1,
-                                     1, stride=1,
-                                     bias=convbias, bnorm=bnormlast,
-                                     act_fun=act_fun,
-                                     dropout=dropout)
-            self.c11d = Conv2d_Block(2, 2 * nfilts[-1],
-                                     1, stride=1,
-                                     bias=convbias, bnorm=bnormlast,
-                                     act_fun=act_fun,
-                                     dropout=dropout)
-        # dense layers
-        if self.conv11:
-            self.nfiltslatent = 1
-        else:
-            self.nfiltslatent = nfilts[-1]
-        self.le = nn.Linear(self.nfiltslatent * self.nhlatent * self.nwlatent, nenc)
-        self.ld = nn.Linear(nenc, (2 * self.nfiltslatent) * self.nhlatent * self.nwlatent)
-        self.tanh = nn.Tanh()
-
-        # decoder convolutions
-        nfilts = nfilts[1:] + [nfilts[-1] * 2, ]
-        conv_blocks = [ResNetTranspose_Layer(in_f, out_f,
-                                             kernel_size=ks,
-                                             act_fun=act_fun,
-                                             expansion=1,
-                                             nlayers=nlayers,
-                                             upstride=2)
-                       for in_f, out_f, ks in zip(nfilts[::-1], nfilts[::-1][1:], kernel_size[::-1])]
-        if superres:
-            conv_blocks.append(ConvTranspose2d_ChainOfLayers1(nfilts[0], kernel_size=kernel_size[0],
-                                                              nfilts=nfilts[0],
-                                                              nlayers=nlayers - 2,
-                                                              stride=1, bias=convbias,
-                                                              act_fun=act_fun,
-                                                              dropout=dropout,
-                                                              upstride=downstride,
-                                                              upmode='upsample1d'))
-        conv_blocks.append(Conv2d_Block(nfilts[0], 1,
-                                        kernel_size[0], stride=1,
-                                        bias=convbias, bnorm=bnormlast,
-                                        act_fun=None,
-                                        dropout=dropout))
-        self.dec = nn.Sequential(*conv_blocks)
-        self.restriction = restriction
-
-
-class AutoencoderMultiRes(Autoencoder):
-    """MultiResolution AutoEncoder module
-    """
-    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels,
-                 restriction,
-                 convbias=True, act_fun='LeakyReLU', dropout=None,
-                 downstride=2,
-                 downmode='max', upmode='convtransp', bnormlast=True,
-                 relu_enc=False, tanh_enc=False, relu_dec=False,
-                 tanh_final=False,
-                 patcher=None, depatcher=None, npatches=None, patchesscaling=None,
-                 superres=False, conv11=False, conv11size=1):
-        super(AutoencoderMultiRes, self).__init__()
-        self.nh, self.nw = nh, nw
-        self.nhlatent = nh // (2 ** nlevels)
-        self.nwlatent = nw // (2 ** nlevels)
-        self.nenc = nenc
-        self.restriction = restriction
-        self.patcher = patcher
-        self.depatcher = depatcher
-        self.npatches = npatches
-        self.patchesscaling = patchesscaling
-        self.reluflag_enc = relu_enc
-        self.tanhflag_enc = tanh_enc
-        self.reluflag_dec = relu_dec
-        self.tanhflag = tanh_final
-        self.superres = superres
-        self.conv11 = conv11
-
-        # encoder convolutions
-        nfilts = [1, ] + [nfilts * (2 ** i) for i in range(nlevels)]
-        conv_blocks = []
-        in_f = 1
-        for i_f, out_f in enumerate(nfilts[1:]):
-            ms, in_f = MultiRes_Layer(out_f, in_f,
-                                      alpha=1.67,
-                                      act_fun=act_fun,
-                                      downstride=downstride,
-                                      downmode=downmode)
-            conv_blocks.append(ms)
-        self.nfiltslatent = in_f
-        self.enc = nn.Sequential(*conv_blocks)
-
-        # conv 1x1 layers
-        if self.conv11:
-            self.c11e = Conv2d_Block(in_f, conv11size,
-                                     1, stride=1,
-                                     bias=convbias, bnorm=bnormlast,
-                                     act_fun=act_fun,
-                                     dropout=dropout)
-            self.c11d = Conv2d_Block(2 * conv11size, 2 * in_f,
-                                     1, stride=1,
-                                     bias=convbias, bnorm=bnormlast,
-                                     act_fun=act_fun,
-                                     dropout=dropout)
-
-        # dense layers
-        if self.conv11:
-            self.nfiltslatent = conv11size
-        self.le = nn.Linear(self.nfiltslatent * self.nhlatent * self.nwlatent, nenc)
-        self.ld = nn.Linear(nenc, (2 * self.nfiltslatent) * self.nhlatent * self.nwlatent)
-        self.tanh = nn.Tanh()
-
-        # decoder convolutions
-        nfilts = nfilts[1:] + [2 * in_f, ]
-        in_f = nfilts[-1]
-        conv_blocks = []
-        for out_f in nfilts[::-1][1:]:
-            ms, in_f = MultiResTranspose_Layer(out_f, in_f,
-                                               alpha=1.67,
-                                               act_fun=act_fun,
-                                               upstride=downstride)
-            conv_blocks.append(ms)
-        conv_blocks.append(Conv2d_Block(in_f, 1,
-                                        kernel_size, stride=1,
-                                        bias=convbias, bnorm=bnormlast,
-                                        act_fun=None,
-                                        dropout=dropout))
-        self.dec = nn.Sequential(*conv_blocks)
-        self.restriction = restriction
-

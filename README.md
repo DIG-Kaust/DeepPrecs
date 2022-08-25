@@ -1,16 +1,18 @@
-![LOGO](https://github.com/DIG-Kaust/Project_Template/blob/master/logo.png)
+![LOGO](https://github.com/DIG-Kaust/DeepPrecs/blob/master/logo.png)
 
-Reproducible material for **XXX -
-Ravasi M., Author M., Author C.** submitted to XXX.
+``deepprecs`` is a Python library aimed at providing the fundamental building blocks to solve Inverse Problems with 
+the aid of Deep Preconditioners.
 
+For more details refer to the accompanying paper: **Deep Preconditioners and their application to seismic wavefield processing -
+Ravasi M.** submitted to Frontiers in Earth Science.
 
 ## Project structure
 This repository is organized as follows:
 
-* :open_file_folder: **package**: python library containing routines for ....;
-* :open_file_folder: **data**: folder containing data (or instructions on how to retrieve the data
-* :open_file_folder: **notebooks**: set of jupyter notebooks reproducing the experiments in the paper (see below for more details);
-* :open_file_folder: **scripts**: set of python scripts used to run multiple experiments ...
+* :open_file_folder: **deepprecs**: python library containing routines for training and application of deep preconditioners to inverse problems;
+* :open_file_folder: **data**: folder containing instructions on how to retrieve the data used in the examples;
+* :open_file_folder: **notebooks**: set of jupyter notebooks applying deep preconditioners to a number of problems of increasing complexity;
+* :open_file_folder: **scripts**: set of python scripts used to run seismic interpolation experiments in batch mode.
 
 ## Notebooks
 The following notebooks are provided:
@@ -37,12 +39,7 @@ pip install -e .
 
 Remember to always activate the environment by typing:
 ```
-conda activate my_env
-```
-
-Finally, to run tests simply type:
-```
-pytest
+conda activate deepprecs
 ```
 
 **Disclaimer:** All experiments have been carried on a Intel(R) Xeon(R) CPU @ 2.10GHz equipped with a single NVIDIA GEForce RTX 3090 GPU. Different environment 

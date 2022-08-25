@@ -5,12 +5,11 @@ import torch.nn as nn
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 
-from tqdm import tqdm_notebook as tqdm
 from torch.utils.data import TensorDataset, DataLoader
 from pytorch_lightning import LightningDataModule, Callback
 from sklearn.model_selection import train_test_split
-from deepprecs.utils import EarlyStopping, noise_input, SSIM_Loss, \
-    WeightedMSE, loss_corr, loss_pearson, show_tensor_images
+from deepprecs.metric import loss_corr, loss_pearson, SSIM_Loss, WeightedMSE
+from deepprecs.utils import noise_input, show_tensor_images
 
 lossfuncs = {'mse': nn.MSELoss(),
              'weightmse': WeightedMSE(None),
@@ -92,8 +91,8 @@ class LitAutoencoder(pl.LightningModule):
         of regularizing the training process
     noise_std : :obj:`float`, optional
         Percentage of input traces to be masked
-#   device : :obj:`str`, optional
-#         Device
+    device : :obj:`str`, optional
+        Device
 
     """
     def __init__(self, nh, nw, nenc, network, lossfunc, num_epochs, lossweights=None,
