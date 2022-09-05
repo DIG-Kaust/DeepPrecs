@@ -1,16 +1,34 @@
-import torch
-import torch.nn as nn
-
 from deepprecs.model import *
 
 
 class Autoencoder(nn.Module):
-    """Template AutoEncoder module
+    """Template AutoEncoder network
+
+    Create and apply AutoEncoder network. This class is a template
+    which cannot be run directly; users are instead required to subclass it
+    and provide a number of required inputs - see :class:`deepprecs.aemodel.AutoencoderBase`
+    for an example.
+
     """
     def __init__(self):
         super(Autoencoder, self).__init__()
 
     def encode(self, x):
+        """Encoder path
+
+        Apply encoder
+
+        Parameters
+        ----------
+        x : :obj:`torch.tensor`
+            Input
+
+        Returns
+        -------
+        x : :obj:`torch.tensor`
+            Output
+
+        """
         x = self.enc(x)
         if self.conv11:
             x = self.c11e(x)
@@ -23,6 +41,21 @@ class Autoencoder(nn.Module):
         return x
 
     def decode(self, x):
+        """Decoder path
+
+        Apply decoder
+
+        Parameters
+        ----------
+        x : :obj:`torch.tensor`
+            Input
+
+        Returns
+        -------
+        x : :obj:`torch.tensor`
+            Output
+
+        """
         x = self.ld(x)
         if self.reluflag_dec:
             x = act('ReLU')(x)
@@ -34,61 +67,157 @@ class Autoencoder(nn.Module):
             x = self.tanh(x)
         return x
 
-    def restricted_decode(self, x):
-        x = self.decode(x)
-        x = x.view([-1])
-        x = self.restriction.apply(x)
-        return x
-
-    def patched_restricted_decode(self, x):
-        x = x.view([self.npatches, self.nenc])
-        xdec = self.decode(x)
-        x = self.patchesscaling * xdec
-        x = x.view([-1])
-        x = self.patcher.apply(x)
-        x = self.restriction.apply(x)
-        return x, xdec
-
-    def patched_decode(self, x):
-        x = x.view([self.npatches, self.nenc])
-        xdec = self.decode(x)
-        x = self.patchesscaling * xdec
-        x = x.view([-1])
-        x = self.patcher.apply(x)
-        return x, xdec
-
-    def patched_forward(self, x, intermediate=False):
-        # make patches
-        x = self.depatcher.apply(x)
-        x = x.view([self.npatches, 1, self.nh, self.nw])
-        xsc = x / self.patchesscaling
-        # pass through network
-        xdec = self.forward(xsc)
-        # make back into unique data
-        x = self.patchesscaling * xdec
-        x = x.view([-1])
-        x = self.patcher.apply(x)
-        if not intermediate:
-            return x
-        else:
-            return x, xsc, xdec
-
     def forward(self, x):
+        """Autoencoder path
+
+        Apply autoencoder
+
+        Parameters
+        ----------
+        x : :obj:`torch.tensor`
+            Input
+
+        Returns
+        -------
+        x : :obj:`torch.tensor`
+            Output
+
+        """
         x = self.encode(x)
         x = self.decode(x)
         return x
 
+    def restricted_decode(self, x):
+        """Decoder path with physics-based operator
+
+        Apply decoder followed by physics-based operator
+
+        Parameters
+        ----------
+        x : :obj:`torch.tensor`
+            Input
+
+        Returns
+        -------
+        x : :obj:`torch.tensor`
+            Output
+
+        """
+        x = self.decode(x)
+        x = x.view([-1])
+        x = self.restriction.apply(x)
+        return x
+
+    def patched_decode(self, x):
+        """Decoder path with patching
+
+        Apply decoder followed by patching
+
+        Parameters
+        ----------
+        x : :obj:`torch.tensor`
+            Input
+
+        Returns
+        -------
+        x : :obj:`torch.tensor`
+            Output
+        xdec : :obj:`torch.tensor`
+            Decoded output (prior to repatching)
+
+        """
+        x = x.view([self.npatches, self.nenc])
+        xdec = self.decode(x)
+        x = self.patchesscaling * xdec
+        x = x.view([-1])
+        x = self.patcher.apply(x)
+        return x, xdec
+
+    def patched_restricted_decode(self, x):
+        """Decoder path with patching and physics-based operator
+
+        Apply decoder followed by patching and physics-based operator
+
+        Parameters
+        ----------
+        x : :obj:`torch.tensor`
+            Input
+
+        Returns
+        -------
+        x : :obj:`torch.tensor`
+            Output
+        xdec : :obj:`torch.tensor`
+            Decoded output (prior to repatching and physics-based operator)
+
+        """
+        x, xdec = self.patched_decode(x)
+        x = self.restriction.apply(x)
+        return x, xdec
+
 
 class AutoencoderBase(Autoencoder):
     """Base AutoEncoder module
+
+    Create and apply purely convolutional AutoEncoder network.
+
+    Parameters
+    ----------
+    nh : :obj:`int`
+        Height of input images
+    nw : :obj:`torch.nn.Module`
+        Width of input images
+    nenc : :obj:`int`
+        Size of latent code
+    kernel_size : :obj:`int` or :obj:`list`
+        Kernel size (constant for all levels, or different for each level)
+    nfilts : :obj:`int` or :obj:`list`
+        Number of filters per layer (constant for all levels, or different for each level)
+    nlayers : :obj:`int`
+        Number of layers per level
+    nlayers : :obj:`int`
+        Number of levels
+    restriction : :obj:`pylops_gpu.TorchOperator`
+        Physical operator
+    convbias : :obj:`bool`, optional
+        Add bias to convolution layers
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    dropout : :obj:`float`, optional
+        Percentage of dropout (if ``None``, dropout is not applied)
+    downstride : :obj:`int`, optional
+        Stride of downsampling operation
+    downmode : :obj:`str`, optional
+        Mode of downsampling operation (``avg`` or ``max``)
+    upmode : :obj:`str`, optional
+        Mode of upsampling operation (``convtransp`` or ``upsample``)
+    bnormlast : :obj:`bool`, optional
+        Apply batch normalization to last convolutional layer of decoder
+    relu_enc : :obj:`bool`, optional
+        Apply ReLU activation to linear layer of encoder
+    tanh_enc : :obj:`bool`, optional
+        Apply Tanh activation to linear layer of encoder
+    relu_dec : :obj:`bool`, optional
+        Apply ReLU activation to linear layer of decoder
+    tanh_final : :obj:`bool`, optional
+        Apply Tanh activation to final layer of decoder
+    patcher : :obj:`pylops_gpu.TorchOperator`, optional
+        Patching operator
+    npatches : :obj:`int`, optional
+        Number of patches (required when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
+    patchesscaling : :obj:`torch.tensor`, optional
+        Scalings to apply to each patch (required when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
+    conv11 : :obj:`bool`, optional
+        Apply 1x1 convolution at the bottleneck before linear layer of encoder and after linear layer of decoder
+    conv11size : :obj:`int`, optional
+        Number of output channels of 1x1 convolution layer
+
     """
-    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels,
-                 restriction,
+    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, restriction,
                  convbias=True, act_fun='LeakyReLU', dropout=None, downstride=2,
                  downmode='max', upmode='convtransp', bnormlast=True,
                  relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
-                 patcher=None, depatcher=None, npatches=None, patchesscaling=None,
-                 superres=False, conv11=False, conv11size=1):
+                 patcher=None, npatches=None, patchesscaling=None, conv11=False, conv11size=1):
         super(AutoencoderBase, self).__init__()
         self.nh, self.nw = nh, nw
         self.nhlatent = nh // (2 ** nlevels)
@@ -96,14 +225,12 @@ class AutoencoderBase(Autoencoder):
         self.nenc = nenc
         self.restriction = restriction
         self.patcher = patcher
-        self.depatcher = depatcher
         self.npatches = npatches
         self.patchesscaling = patchesscaling
         self.reluflag_enc = relu_enc
         self.tanhflag_enc = tanh_enc
         self.reluflag_dec = relu_dec
         self.tanhflag = tanh_final
-        self.superres = superres
         self.conv11 = conv11
         self.conv11size = conv11size # force to reduce to a user-defined number of channels (1 as default)
 
@@ -127,12 +254,12 @@ class AutoencoderBase(Autoencoder):
         if self.conv11:
             self.c11e = Conv2d_Block(nfilts[-1], conv11size,
                                      1, stride=1,
-                                     bias=convbias, bnorm=bnormlast,
+                                     bias=convbias,
                                      act_fun=act_fun,
                                      dropout=dropout)
             self.c11d = Conv2d_Block(2 * conv11size, 2 * nfilts[-1],
                                      1, stride=1,
-                                     bias=convbias, bnorm=bnormlast,
+                                     bias=convbias,
                                      act_fun=act_fun,
                                      dropout=dropout)
 
@@ -146,7 +273,6 @@ class AutoencoderBase(Autoencoder):
         self.tanh = nn.Tanh()
         
         # decoder convolutions
-        # self.nfiltslatent = nfilts[-1]
         nfilts = nfilts[1:] + [nfilts[-1] * 2, ]
         conv_blocks = [ConvTranspose2d_ChainOfLayers(in_f, kernel_size=ks,
                                                      nfilts=out_f, nlayers=nlayers,
@@ -166,16 +292,68 @@ class AutoencoderBase(Autoencoder):
 
 
 class AutoencoderSymmetric(Autoencoder):
-    """AutoEncoder module with symmetry between encoder and decoder
+    """Symmetric AutoEncoder module
+
+    Create and apply purely convolutional AutoEncoder network with symmetric encoder and decoder
     (AutoencoderBase has some asymmetry)
+
+    Parameters
+    ----------
+    nh : :obj:`int`
+        Height of input images
+    nw : :obj:`torch.nn.Module`
+        Width of input images
+    nenc : :obj:`int`
+        Size of latent code
+    kernel_size : :obj:`int` or :obj:`list`
+        Kernel size (constant for all levels, or different for each level)
+    nfilts : :obj:`int` or :obj:`list`
+        Number of filters per layer (constant for all levels, or different for each level)
+    nlayers : :obj:`int`
+        Number of layers per level
+    nlayers : :obj:`int`
+        Number of levels
+    restriction : :obj:`pylops_gpu.TorchOperator`
+        Physical operator
+    convbias : :obj:`bool`, optional
+        Add bias to convolution layers
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    dropout : :obj:`float`, optional
+        Percentage of dropout (if ``None``, dropout is not applied)
+    downstride : :obj:`int`, optional
+        Stride of downsampling operation
+    downmode : :obj:`str`, optional
+        Mode of downsampling operation (``avg`` or ``max``)
+    upmode : :obj:`str`, optional
+        Mode of upsampling operation (``convtransp`` or ``upsample``)
+    bnormlast : :obj:`bool`, optional
+        Apply batch normalization to last convolutional layer of decoder
+    relu_enc : :obj:`bool`, optional
+        Apply ReLU activation to linear layer of encoder
+    tanh_enc : :obj:`bool`, optional
+        Apply Tanh activation to linear layer of encoder
+    relu_dec : :obj:`bool`, optional
+        Apply ReLU activation to linear layer of decoder
+    tanh_final : :obj:`bool`, optional
+        Apply Tanh activation to final layer of decoder
+    patcher : :obj:`pylops_gpu.TorchOperator`, optional
+        Patching operator
+    npatches : :obj:`int`, optional
+        Number of patches (required when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
+    patchesscaling : :obj:`torch.tensor`, optional
+        Scalings to apply to each patch (required when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
+    conv11 : :obj:`bool`, optional
+        Apply 1x1 convolution at the bottleneck before linear layer of encoder and after linear layer of decoder
+    conv11size : :obj:`int`, optional
+        Number of output channels of 1x1 convolution layer
+
     """
-    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels,
-                 restriction,
+    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, restriction,
                  convbias=True, act_fun='LeakyReLU', dropout=None, downstride=2,
                  downmode='max', upmode='convtransp', bnormlast=True,
                  relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
-                 patcher=None, depatcher=None, npatches=None, patchesscaling=None,
-                 superres=False):
+                 patcher=None, npatches=None, patchesscaling=None):
         super(AutoencoderSymmetric, self).__init__()
         self.nh, self.nw = nh, nw
         self.nhlatent = nh // (2 ** nlevels)
@@ -183,14 +361,12 @@ class AutoencoderSymmetric(Autoencoder):
         self.nenc = nenc
         self.restriction = restriction
         self.patcher = patcher
-        self.depatcher = depatcher
         self.npatches = npatches
         self.patchesscaling = patchesscaling
         self.reluflag_enc = relu_enc
         self.tanhflag_enc = tanh_enc
         self.reluflag_dec = relu_dec
         self.tanhflag = tanh_final
-        self.superres = superres
         self.conv11 = False
 
         # define kernel sizes
@@ -217,7 +393,6 @@ class AutoencoderSymmetric(Autoencoder):
         self.tanh = nn.Tanh()
 
         # decoder convolutions
-        #self.nfiltslatent = nfilts[-1]
         nfilts = [nfilts[1]] + nfilts[1:]
         conv_blocks = [ConvTranspose2d_ChainOfLayers1(in_f, kernel_size=ks,
                                                       nfilts=out_f,
@@ -228,15 +403,7 @@ class AutoencoderSymmetric(Autoencoder):
                                                       upstride=downstride,
                                                       upmode=upmode)
                        for iblock, (in_f, out_f, ks) in enumerate(zip(nfilts[::-1], nfilts[::-1][1:], kernel_size[::-1]))]
-        if superres:
-            conv_blocks.append(ConvTranspose2d_ChainOfLayers1(nfilts[0], kernel_size=kernel_size[0],
-                                                              nfilts=nfilts[0],
-                                                              nlayers=nlayers-2,
-                                                              stride=1, bias=convbias,
-                                                              act_fun=act_fun,
-                                                              dropout=dropout,
-                                                              upstride=downstride,
-                                                              upmode='upsample1d'))
+
         conv_blocks.append(Conv2d_Block(nfilts[0], 1,
                                         kernel_size[0], stride=1,
                                         bias=convbias, bnorm=bnormlast,
@@ -258,16 +425,66 @@ class AutoencoderSymmetric(Autoencoder):
 
 class AutoencoderRes(Autoencoder):
     """ResNet AutoEncoder module
+
+    Create and apply AutoEncoder network with ResNet blocks
+
+    Parameters
+    ----------
+    nh : :obj:`int`
+        Height of input images
+    nw : :obj:`torch.nn.Module`
+        Width of input images
+    nenc : :obj:`int`
+        Size of latent code
+    kernel_size : :obj:`int` or :obj:`list`
+        Kernel size (constant for all levels, or different for each level)
+    nfilts : :obj:`int` or :obj:`list`
+        Number of filters per layer (constant for all levels, or different for each level)
+    nlayers : :obj:`int`
+        Number of layers per level
+    nlayers : :obj:`int`
+        Number of levels
+    restriction : :obj:`pylops_gpu.TorchOperator`
+        Physical operator
+    convbias : :obj:`bool`, optional
+        Add bias to convolution layers
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    dropout : :obj:`float`, optional
+        Percentage of dropout (if ``None``, dropout is not applied)
+    downstride : :obj:`int`, optional
+        Stride of downsampling operation
+    downmode : :obj:`str`, optional
+        Mode of downsampling operation (``avg`` or ``max``)
+    upmode : :obj:`str`, optional
+        Mode of upsampling operation (``convtransp`` or ``upsample``)
+    bnormlast : :obj:`bool`, optional
+        Apply batch normalization to last convolutional layer of decoder
+    relu_enc : :obj:`bool`, optional
+        Apply ReLU activation to linear layer of encoder
+    tanh_enc : :obj:`bool`, optional
+        Apply Tanh activation to linear layer of encoder
+    relu_dec : :obj:`bool`, optional
+        Apply ReLU activation to linear layer of decoder
+    tanh_final : :obj:`bool`, optional
+        Apply Tanh activation to final layer of decoder
+    patcher : :obj:`pylops_gpu.TorchOperator`, optional
+        Patching operator
+    npatches : :obj:`int`, optional
+        Number of patches (required when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
+    patchesscaling : :obj:`torch.tensor`, optional
+        Scalings to apply to each patch (required when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
+    conv11 : :obj:`bool`, optional
+        Apply 1x1 convolution at the bottleneck before linear layer of encoder and after linear layer of decoder
+    conv11size : :obj:`int`, optional
+        Number of output channels of 1x1 convolution layer
+
     """
-    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels,
-                 restriction,
-                 convbias=True, act_fun='LeakyReLU', dropout=None,
-                 downstride=1,
+    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, restriction,
+                 convbias=True, act_fun='LeakyReLU', dropout=None, downstride=1,
                  downmode='max', upmode='convtransp', bnormlast=True,
-                 relu_enc=False, tanh_enc=False, relu_dec=False,
-                 tanh_final=False,
-                 patcher=None, depatcher=None, npatches=None, patchesscaling=None,
-                 superres=False, conv11=False, conv11size=1):
+                 relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
+                 patcher=None, npatches=None, patchesscaling=None, conv11=False, conv11size=1):
         super(AutoencoderRes, self).__init__()
         self.nh, self.nw = nh, nw
         self.nhlatent = nh // (2 ** nlevels)
@@ -275,14 +492,12 @@ class AutoencoderRes(Autoencoder):
         self.nenc = nenc
         self.restriction = restriction
         self.patcher = patcher
-        self.depatcher = depatcher
         self.npatches = npatches
         self.patchesscaling = patchesscaling
         self.reluflag_enc = relu_enc
         self.tanhflag_enc = tanh_enc
         self.reluflag_dec = relu_dec
         self.tanhflag = tanh_final
-        self.superres = superres
         self.conv11 = conv11
 
         # define kernel sizes
@@ -306,12 +521,12 @@ class AutoencoderRes(Autoencoder):
         if self.conv11:
             self.c11e = Conv2d_Block(nfilts[-1], 1,
                                      1, stride=1,
-                                     bias=convbias, bnorm=bnormlast,
+                                     bias=convbias,
                                      act_fun=act_fun,
                                      dropout=dropout)
             self.c11d = Conv2d_Block(2, 2 * nfilts[-1],
                                      1, stride=1,
-                                     bias=convbias, bnorm=bnormlast,
+                                     bias=convbias,
                                      act_fun=act_fun,
                                      dropout=dropout)
         # dense layers
@@ -332,15 +547,6 @@ class AutoencoderRes(Autoencoder):
                                              nlayers=nlayers,
                                              upstride=2)
                        for in_f, out_f, ks in zip(nfilts[::-1], nfilts[::-1][1:], kernel_size[::-1])]
-        if superres:
-            conv_blocks.append(ConvTranspose2d_ChainOfLayers1(nfilts[0], kernel_size=kernel_size[0],
-                                                              nfilts=nfilts[0],
-                                                              nlayers=nlayers - 2,
-                                                              stride=1, bias=convbias,
-                                                              act_fun=act_fun,
-                                                              dropout=dropout,
-                                                              upstride=downstride,
-                                                              upmode='upsample1d'))
         conv_blocks.append(Conv2d_Block(nfilts[0], 1,
                                         kernel_size[0], stride=1,
                                         bias=convbias, bnorm=bnormlast,
@@ -351,17 +557,67 @@ class AutoencoderRes(Autoencoder):
 
 
 class AutoencoderMultiRes(Autoencoder):
-    """MultiResolution AutoEncoder module
+    """MultiRes AutoEncoder module
+
+    Create and apply AutoEncoder network with MultiResolution blocks
+
+    Parameters
+    ----------
+    nh : :obj:`int`
+        Height of input images
+    nw : :obj:`torch.nn.Module`
+        Width of input images
+    nenc : :obj:`int`
+        Size of latent code
+    kernel_size : :obj:`int` or :obj:`list`
+        Kernel size (constant for all levels, or different for each level)
+    nfilts : :obj:`int` or :obj:`list`
+        Number of filters per layer (constant for all levels, or different for each level)
+    nlayers : :obj:`int`
+        Number of layers per level
+    nlayers : :obj:`int`
+        Number of levels
+    restriction : :obj:`pylops_gpu.TorchOperator`
+        Physical operator
+    convbias : :obj:`bool`, optional
+        Add bias to convolution layers
+    act_fun : :obj:`str` or :obj:`torch.nn`, optional
+        Activation function name or function signature
+    dropout : :obj:`float`, optional
+        Percentage of dropout (if ``None``, dropout is not applied)
+    downstride : :obj:`int`, optional
+        Stride of downsampling operation
+    downmode : :obj:`str`, optional
+        Mode of downsampling operation (``avg`` or ``max``)
+    upmode : :obj:`str`, optional
+        Mode of upsampling operation (``convtransp`` or ``upsample``)
+    bnormlast : :obj:`bool`, optional
+        Apply batch normalization to last convolutional layer of decoder
+    relu_enc : :obj:`bool`, optional
+        Apply ReLU activation to linear layer of encoder
+    tanh_enc : :obj:`bool`, optional
+        Apply Tanh activation to linear layer of encoder
+    relu_dec : :obj:`bool`, optional
+        Apply ReLU activation to linear layer of decoder
+    tanh_final : :obj:`bool`, optional
+        Apply Tanh activation to final layer of decoder
+    patcher : :obj:`pylops_gpu.TorchOperator`, optional
+        Patching operator
+    npatches : :obj:`int`, optional
+        Number of patches (required when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
+    patchesscaling : :obj:`torch.tensor`, optional
+        Scalings to apply to each patch (required when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
+    conv11 : :obj:`bool`, optional
+        Apply 1x1 convolution at the bottleneck before linear layer of encoder and after linear layer of decoder
+    conv11size : :obj:`int`, optional
+        Number of output channels of 1x1 convolution layer
+
     """
-    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels,
-                 restriction,
-                 convbias=True, act_fun='LeakyReLU', dropout=None,
-                 downstride=2,
+    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, restriction,
+                 convbias=True, act_fun='LeakyReLU', dropout=None, downstride=2,
                  downmode='max', upmode='convtransp', bnormlast=True,
-                 relu_enc=False, tanh_enc=False, relu_dec=False,
-                 tanh_final=False,
-                 patcher=None, depatcher=None, npatches=None, patchesscaling=None,
-                 superres=False, conv11=False, conv11size=1):
+                 relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
+                 patcher=None, npatches=None, patchesscaling=None, conv11=False, conv11size=1):
         super(AutoencoderMultiRes, self).__init__()
         self.nh, self.nw = nh, nw
         self.nhlatent = nh // (2 ** nlevels)
@@ -369,14 +625,12 @@ class AutoencoderMultiRes(Autoencoder):
         self.nenc = nenc
         self.restriction = restriction
         self.patcher = patcher
-        self.depatcher = depatcher
         self.npatches = npatches
         self.patchesscaling = patchesscaling
         self.reluflag_enc = relu_enc
         self.tanhflag_enc = tanh_enc
         self.reluflag_dec = relu_dec
         self.tanhflag = tanh_final
-        self.superres = superres
         self.conv11 = conv11
 
         # encoder convolutions
@@ -397,12 +651,12 @@ class AutoencoderMultiRes(Autoencoder):
         if self.conv11:
             self.c11e = Conv2d_Block(in_f, conv11size,
                                      1, stride=1,
-                                     bias=convbias, bnorm=bnormlast,
+                                     bias=convbias,
                                      act_fun=act_fun,
                                      dropout=dropout)
             self.c11d = Conv2d_Block(2 * conv11size, 2 * in_f,
                                      1, stride=1,
-                                     bias=convbias, bnorm=bnormlast,
+                                     bias=convbias,
                                      act_fun=act_fun,
                                      dropout=dropout)
 

@@ -1,7 +1,7 @@
 ![LOGO](https://github.com/DIG-Kaust/DeepPrecs/blob/main/logo.png)
 
 ``deepprecs`` is a Python library aimed at providing the fundamental building blocks to solve Inverse Problems with 
-the aid of Deep Preconditioners. ``deepprecs`` are implemented on top of Pytorch-Lightning (for network training) and 
+the aid of Deep Preconditioners: this library is implemented on top of Pytorch-Lightning (for network training) and 
 PyLops (for physical operators).
 
 For more details refer to the accompanying paper: **Deep Preconditioners and their application to seismic wavefield processing -
