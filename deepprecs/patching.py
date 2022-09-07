@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -154,3 +155,93 @@ def patch_scalings(data, Pop, npatches, npatch=(64, 64), plotflag=False, clip=0.
     print(f'Scalings {scalings.squeeze()}')
 
     return scalings
+
+
+def _slidingsteps(ntr, nwin, nover):
+    """Identify sliding window initial and end points given overall
+    trace length, window length and overlap
+    Parameters
+    ----------
+    ntr : :obj:`int`
+        Number of samples in trace
+    nwin : :obj:`int`
+        Number of samples of window
+    nover : :obj:`int`
+        Number of samples of overlapping part of window
+    Returns
+    -------
+    starts : :obj:`np.ndarray`
+        Start indices
+    ends : :obj:`np.ndarray`
+        End indices
+    """
+    if nwin > ntr:
+        raise ValueError(f"nwin={nwin} is bigger than ntr={ntr}...")
+    step = nwin - nover
+    starts = np.arange(0, ntr - nwin + 1, step, dtype=int)
+    ends = starts + nwin
+    return starts, ends
+
+
+def patch2d_design(dimsd, nwin, nover, nop):
+    """Design Patch2D operator
+    This routine can be used prior to creating the :class:`pylops.signalprocessing.Patch2D`
+    operator to identify the correct number of windows to be used based on the dimension of the data (``dimsd``),
+    dimension of the window (``nwin``), overlap (``nover``),a and dimension of the operator acting in the model
+    space.
+    Parameters
+    ----------
+    dimsd : :obj:`tuple`
+        Shape of 2-dimensional data.
+    nwin : :obj:`tuple`
+        Number of samples of window.
+    nover : :obj:`tuple`
+        Number of samples of overlapping part of window.
+    nop : :obj:`tuple`
+        Size of model in the transformed domain.
+
+    Returns
+    -------
+    nwins : :obj:`tuple`
+        Number of windows.
+    dims : :obj:`tuple`
+        Shape of 2-dimensional model.
+    mwins_inends : :obj:`tuple`
+        Start and end indices for model patches (stored as tuple of tuples).
+    dwins_inends : :obj:`tuple`
+        Start and end indices for data patches (stored as tuple of tuples).
+    """
+    # data windows
+    dwin0_ins, dwin0_ends = _slidingsteps(dimsd[0], nwin[0], nover[0])
+    dwin1_ins, dwin1_ends = _slidingsteps(dimsd[1], nwin[1], nover[1])
+    dwins_inends = ((dwin0_ins, dwin0_ends), (dwin1_ins, dwin1_ends))
+    nwins0 = len(dwin0_ins)
+    nwins1 = len(dwin1_ins)
+    nwins = (nwins0, nwins1)
+
+    # model windows
+    dims = (nwins0 * nop[0], nwins1 * nop[1])
+    mwin0_ins, mwin0_ends = _slidingsteps(dims[0], nop[0], 0)
+    mwin1_ins, mwin1_ends = _slidingsteps(dims[1], nop[1], 0)
+    mwins_inends = ((mwin0_ins, mwin0_ends), (mwin1_ins, mwin1_ends))
+
+    # print information about patching
+    logging.warning("%d-%d windows required...", nwins0, nwins1)
+    logging.warning(
+        "data wins - start:%s, end:%s / start:%s, end:%s",
+        dwin0_ins,
+        dwin0_ends,
+        dwin1_ins,
+        dwin1_ends,
+    )
+    logging.warning(
+        "model wins - start:%s, end:%s / start:%s, end:%s",
+        mwin0_ins,
+        mwin0_ends,
+        mwin1_ins,
+        mwin1_ends,
+    )
+    return nwins, dims, mwins_inends, dwins_inends
+
+
+
