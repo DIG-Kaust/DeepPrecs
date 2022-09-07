@@ -2,7 +2,7 @@ exp:
   label: marmousi # dataset label
   number: 1 # experiment number
   name: Marmousi - ResNet network with more filters 300enc (mse+ccc cost with learned weigths + mask) # experiment name
-  inputfile: ../data/syncline/input.npz # input file
+  inputfile: ../data/marmousi/input.npz # input file
   nrec: 199 # number of receivers to select from data
 
 global:
