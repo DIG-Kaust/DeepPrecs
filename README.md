@@ -21,8 +21,9 @@ This repository is organized as follows:
 The following notebooks are provided:
 
 - :orange_book: ``sinusoids/Sinusoid_reconstruction_pl.ipynb``: notebook performing 1D interpolation with deep precondtioners;
-- :orange_book: ``syncline/Syncline.ipynb``: notebook performing deghosting of a Syncline shot gather with deep precondtioners;
-- :orange_book: ``marmousi/Marmousi_deghosting_pl.ipynb``: notebook performing deghosting of a Marmousi shot gather with deep precondtioners;
+- :orange_book: ``syncline/Syncline_deghosting_pl.ipynb``: notebook performing deghosting of a Syncline shot gather with deep preconditioners (including training);
+- :orange_book: ``syncline/Syncline_deghosting_inferenceonly.ipynb``: notebook performing deghosting of a Syncline shot gather with deep precondtioners (only inference with pre-trained model);
+- :orange_book: ``marmousi/Marmousi_deghosting_pl.ipynb``: notebook performing deghosting of a Marmousi shot gather with deep preconditioners (including training);
 
 
 ## Getting started :space_invader: :robot:
