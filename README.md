@@ -14,8 +14,8 @@ This repository is organized as follows:
 * :open_file_folder: **deepprecs**: python library containing routines for training and application of deep preconditioners to inverse problems;
 * :open_file_folder: **data**: folder containing instructions on how to retrieve the data used in the examples;
 * :open_file_folder: **notebooks**: set of jupyter notebooks applying deep preconditioners to a number of problems of increasing complexity;
-* :open_file_folder: **scripts**: set of python scripts used to run seismic interpolation experiments in batch mode.
-
+* :open_file_folder: **scripts**: set of python scripts used to run seismic interpolation experiments in batch mode;
+* :open_file_folder: **config**: set of configuration files to run scripts.
 
 ## Notebooks
 The following notebooks are provided:
