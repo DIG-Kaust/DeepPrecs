@@ -27,3 +27,4 @@ dependencies:
     - torchviz
     - pytorch-msssim
     - pytorch-lightning
+    - pyyaml

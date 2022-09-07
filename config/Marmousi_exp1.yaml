@@ -1,0 +1,79 @@
+exp:
+  label: marmousi # dataset label
+  number: 1 # experiment number
+  name: Marmousi - ResNet network with more filters 300enc (mse+ccc cost with learned weigths + mask) # experiment name
+  inputfile: ../data/syncline/input.npz # input file
+  nrec: 199 # number of receivers to select from data
+
+global:
+  devicenum: 0 # device number to use for training and inference
+  seed: 5 # device number to use for training and inference
+  display: False # display figures
+  clip: 0.8 # clip to apply to data in figures
+
+patching:
+  nspatch: 64 # number of samples in source axis for training patches
+  ntpatch: 64 # number of samples in time axis for training patches
+  nsjump: 32 # jump of samples in source axis for training patches
+  ntjump: 32 # jump of samples in time axis for training patches
+
+
+autoencoder:
+  aetype: AutoencoderRes # AE types: AutoencoderBase, AutoencoderRes, AutoencoderMultiRes
+  nenc: 300  # Size of latent space
+  kernel_size: 5  # Size of filters kernels
+  nfilts: 32  # number of filters for conv layers in first level (doubles up going down)
+  nlayers: 2  # number of layers per level
+  nlevels: 2  # number of levels
+  convbias: True  # add bias to convolution layers
+  downstride: 1  # stride of downsampling/pooling blocks (same will be used for upsampling blocks)
+  downmode: 'max'  # type of pooling (avg or max)
+  upmode: 'upsample'  # type of upsampling (convtransp, upsample or upsample1d)
+  bnormlast: True  # add batch normalization to the last layer
+  act_fun: 'LeakyReLU'  # activation function for all hidden layers
+  relu_enc: False  # add ReLU activation to the linear layer of the encoder (this and tanh_enc cannot be both true)
+  tanh_enc: True  # add TanH activation to the linear layer of the encoder
+  relu_dec: True  # add ReLU activation to the linear layer of the decoder
+  tanh_final: False  # add TanH activation to the last layer of the network - ensures the output is bounded between [-1, 1]
+
+optimizer:
+  loss: 'mse_ccc'  # loss: mse, weightmse, l1, ssim, peaerson, mse_pearson, l1_pearson, ccc, mse_ccc, l1_ccc
+  lossweights: None
+  betas: 0.5,0.9  # betas of Adam optimizer
+  weight_decay: 1e-5  # weigth decay of Adam optimizer
+  learning_rate: 1e-4  # learning rate of Adam optimizer
+  adapt_learning: True  # apply adaptive learning rate
+  lr_scheduler: 'OneCycle'  # type of adaptive learning rate: OnPlateau, OneCycleLR
+  lr_factor: None  # lr factor for OnPlateau
+  lr_thresh: None  # lr thresh for OnPlateau
+  lr_patience: None  # lr patience for OnPlateau
+  lr_max: 1e-3  # lr max for OneCycleLR
+  es_patience: 10  # early stopping patience
+  es_min_delta: 1e-3  # min difference to trigger early stopping
+
+training:
+  num_epochs: 40  # number of epochs
+  batch_size: 256  # batch size
+  noise_std: 0.0  # standard deviation noise to input
+  mask_perc: 0.2  # percentage of traces to mask
+
+deghosting:
+  # Data selection
+  isrc: 100 # source index to be used for inversion
+  fwav: 15 # frequency of Ricker wavelet to convolve to data
+
+  # Direct wave window
+  toff: 0.06 # time offset
+  nsmoothwin: 5 # size of smoothing to apply to window
+
+  # Ghost operator
+  vel_sep: 1500.0 # velocity at separation level
+  nxpad: 20 # size of padding along x-axis prior to applying ghost model
+  ntaper: 11 # size of spatial taper along-x axis prior to applying ghost model
+
+  # Restriction operator
+  kind: irreg # type of subsampling: irreg or reg
+  perc: 0.4 # percentage of subsampling
+
+  # Patching
+  nover: 19,8
