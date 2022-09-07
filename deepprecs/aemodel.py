@@ -87,7 +87,7 @@ class Autoencoder(nn.Module):
         x = self.decode(x)
         return x
 
-    def restricted_decode(self, x):
+    def physics_decode(self, x):
         """Decoder path with physics-based operator
 
         Apply decoder followed by physics-based operator
@@ -105,7 +105,7 @@ class Autoencoder(nn.Module):
         """
         x = self.decode(x)
         x = x.view([-1])
-        x = self.restriction.apply(x)
+        x = self.physics.apply(x)
         return x
 
     def patched_decode(self, x):
@@ -133,7 +133,7 @@ class Autoencoder(nn.Module):
         x = self.patcher.apply(x)
         return x, xdec
 
-    def patched_restricted_decode(self, x):
+    def patched_physics_decode(self, x):
         """Decoder path with patching and physics-based operator
 
         Apply decoder followed by patching and physics-based operator
@@ -152,7 +152,7 @@ class Autoencoder(nn.Module):
 
         """
         x, xdec = self.patched_decode(x)
-        x = self.restriction.apply(x)
+        x = self.physics.apply(x)
         return x, xdec
 
 
@@ -177,7 +177,7 @@ class AutoencoderBase(Autoencoder):
         Number of layers per level
     nlayers : :obj:`int`
         Number of levels
-    restriction : :obj:`pylops_gpu.TorchOperator`
+    physics : :obj:`pylops_gpu.TorchOperator`
         Physical operator
     convbias : :obj:`bool`, optional
         Add bias to convolution layers
@@ -213,7 +213,7 @@ class AutoencoderBase(Autoencoder):
         Number of output channels of 1x1 convolution layer
 
     """
-    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, restriction,
+    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, physics,
                  convbias=True, act_fun='LeakyReLU', dropout=None, downstride=2,
                  downmode='max', upmode='convtransp', bnormlast=True,
                  relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
@@ -223,7 +223,7 @@ class AutoencoderBase(Autoencoder):
         self.nhlatent = nh // (2 ** nlevels)
         self.nwlatent = nw // (2 ** nlevels)
         self.nenc = nenc
-        self.restriction = restriction
+        self.physics = physics
         self.patcher = patcher
         self.npatches = npatches
         self.patchesscaling = patchesscaling
@@ -288,7 +288,7 @@ class AutoencoderBase(Autoencoder):
                                         act_fun=None,
                                         dropout=dropout))
         self.dec = nn.Sequential(*conv_blocks)
-        self.restriction = restriction
+        self.physics = physics
 
 
 class AutoencoderSymmetric(Autoencoder):
@@ -313,7 +313,7 @@ class AutoencoderSymmetric(Autoencoder):
         Number of layers per level
     nlayers : :obj:`int`
         Number of levels
-    restriction : :obj:`pylops_gpu.TorchOperator`
+    physics : :obj:`pylops_gpu.TorchOperator`
         Physical operator
     convbias : :obj:`bool`, optional
         Add bias to convolution layers
@@ -349,7 +349,7 @@ class AutoencoderSymmetric(Autoencoder):
         Number of output channels of 1x1 convolution layer
 
     """
-    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, restriction,
+    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, physics,
                  convbias=True, act_fun='LeakyReLU', dropout=None, downstride=2,
                  downmode='max', upmode='convtransp', bnormlast=True,
                  relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
@@ -359,7 +359,7 @@ class AutoencoderSymmetric(Autoencoder):
         self.nhlatent = nh // (2 ** nlevels)
         self.nwlatent = nw // (2 ** nlevels)
         self.nenc = nenc
-        self.restriction = restriction
+        self.physics = physics
         self.patcher = patcher
         self.npatches = npatches
         self.patchesscaling = patchesscaling
@@ -410,7 +410,7 @@ class AutoencoderSymmetric(Autoencoder):
                                         act_fun=None,
                                         dropout=dropout))
         self.dec = nn.Sequential(*conv_blocks)
-        self.restriction = restriction
+        self.physics = physics
 
     def decode(self, x):
         x = self.ld(x)
@@ -444,7 +444,7 @@ class AutoencoderRes(Autoencoder):
         Number of layers per level
     nlayers : :obj:`int`
         Number of levels
-    restriction : :obj:`pylops_gpu.TorchOperator`
+    physics : :obj:`pylops_gpu.TorchOperator`
         Physical operator
     convbias : :obj:`bool`, optional
         Add bias to convolution layers
@@ -480,7 +480,7 @@ class AutoencoderRes(Autoencoder):
         Number of output channels of 1x1 convolution layer
 
     """
-    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, restriction,
+    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, physics,
                  convbias=True, act_fun='LeakyReLU', dropout=None, downstride=1,
                  downmode='max', upmode='convtransp', bnormlast=True,
                  relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
@@ -490,7 +490,7 @@ class AutoencoderRes(Autoencoder):
         self.nhlatent = nh // (2 ** nlevels)
         self.nwlatent = nw // (2 ** nlevels)
         self.nenc = nenc
-        self.restriction = restriction
+        self.physics = physics
         self.patcher = patcher
         self.npatches = npatches
         self.patchesscaling = patchesscaling
@@ -553,7 +553,7 @@ class AutoencoderRes(Autoencoder):
                                         act_fun=None,
                                         dropout=dropout))
         self.dec = nn.Sequential(*conv_blocks)
-        self.restriction = restriction
+        self.physics = physics
 
 
 class AutoencoderMultiRes(Autoencoder):
@@ -577,7 +577,7 @@ class AutoencoderMultiRes(Autoencoder):
         Number of layers per level
     nlayers : :obj:`int`
         Number of levels
-    restriction : :obj:`pylops_gpu.TorchOperator`
+    physics : :obj:`pylops_gpu.TorchOperator`
         Physical operator
     convbias : :obj:`bool`, optional
         Add bias to convolution layers
@@ -613,7 +613,7 @@ class AutoencoderMultiRes(Autoencoder):
         Number of output channels of 1x1 convolution layer
 
     """
-    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, restriction,
+    def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, physics,
                  convbias=True, act_fun='LeakyReLU', dropout=None, downstride=2,
                  downmode='max', upmode='convtransp', bnormlast=True,
                  relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
@@ -623,7 +623,7 @@ class AutoencoderMultiRes(Autoencoder):
         self.nhlatent = nh // (2 ** nlevels)
         self.nwlatent = nw // (2 ** nlevels)
         self.nenc = nenc
-        self.restriction = restriction
+        self.physics = physics
         self.patcher = patcher
         self.npatches = npatches
         self.patchesscaling = patchesscaling
@@ -683,5 +683,5 @@ class AutoencoderMultiRes(Autoencoder):
                                         act_fun=None,
                                         dropout=dropout))
         self.dec = nn.Sequential(*conv_blocks)
-        self.restriction = restriction
+        self.physics = physics
 

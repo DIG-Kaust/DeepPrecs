@@ -145,11 +145,11 @@ class LitAutoencoder(pl.LightningModule):
 
     def _init_weights(self, model):
         if type(model) == nn.Linear:
-            torch.nn.init.xavier_uniform(model.weight)
+            torch.nn.init.xavier_uniform_(model.weight)
             if model.bias is not None:
                 model.bias.data.fill_(0.01)
         elif type(model) == nn.Conv2d or type(model) == nn.ConvTranspose2d:
-            torch.nn.init.xavier_uniform(model.weight)
+            torch.nn.init.xavier_uniform_(model.weight)
             if model.bias is not None:
                 model.bias.data.fill_(0.01)
 
@@ -370,12 +370,17 @@ class PlottingCallback(Callback):
     ----------
     figdir : :obj:`str`
         Directory path where to save figures
+    notebook : :obj:`bool`, optional
+        Run from notebook (``True``) or script (``False``). In case of ``True``
+        the plots will be displayed in the notebook, in case of ``False`` they will be
+        saved and closed
 
     """
 
-    def __init__(self, figdir):
+    def __init__(self, figdir, notebook=True):
         super().__init__()
         self.figdir = figdir
+        self.notebook = notebook
         self.epoch = 0
 
     def on_validation_epoch_end(self, trainer, pl_module):
@@ -393,5 +398,9 @@ class PlottingCallback(Callback):
             if self.figdir is not None:
                 plt.savefig(os.path.join(self.figdir, 'valid_rec_epoch%d.png' %
                                          self.epoch), bbox_inches='tight')
-            plt.show()
+            if self.notebook:
+                plt.show()
+            else:
+                plt.close()
+
         self.epoch +=1
