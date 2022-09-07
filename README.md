@@ -54,8 +54,6 @@ configurations may be required for different combinations of workstation and GPU
 ## Citing :newspaper: :trophy:
 If you find this library useful for your work, please cite the following paper ([ArXiv](https://arxiv.org/abs/2207.09938))
 
-If you use our code for your own research, we would be grateful if you cite our publication
-[ArXiv](http://arxiv.org/abs/1704.03225)
 ```
 @article{ravasi2022,
 	title={Deep Preconditioners and their application to seismic wavefield processing},
