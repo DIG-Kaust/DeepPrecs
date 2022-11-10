@@ -288,7 +288,6 @@ class AutoencoderBase(Autoencoder):
                                         act_fun=None,
                                         dropout=dropout))
         self.dec = nn.Sequential(*conv_blocks)
-        self.physics = physics
 
 
 class AutoencoderSymmetric(Autoencoder):
@@ -410,7 +409,6 @@ class AutoencoderSymmetric(Autoencoder):
                                         act_fun=None,
                                         dropout=dropout))
         self.dec = nn.Sequential(*conv_blocks)
-        self.physics = physics
 
     def decode(self, x):
         x = self.ld(x)
@@ -553,7 +551,6 @@ class AutoencoderRes(Autoencoder):
                                         act_fun=None,
                                         dropout=dropout))
         self.dec = nn.Sequential(*conv_blocks)
-        self.physics = physics
 
 
 class AutoencoderMultiRes(Autoencoder):
@@ -683,5 +680,4 @@ class AutoencoderMultiRes(Autoencoder):
                                         act_fun=None,
                                         dropout=dropout))
         self.dec = nn.Sequential(*conv_blocks)
-        self.physics = physics
 
