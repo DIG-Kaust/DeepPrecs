@@ -11,7 +11,7 @@ dependencies:
   - cudatoolkit=11.3
   - scikit-learn
   - pandas
-  - pylops
+  - pylops=1.18.3
   - matplotlib
   - ipython
   - jupyter
@@ -28,3 +28,4 @@ dependencies:
     - pytorch-msssim
     - pytorch-lightning
     - pyyaml
+
