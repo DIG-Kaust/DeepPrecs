@@ -68,6 +68,11 @@ class LitAutoencoder(pl.LightningModule):
     lossfunc : :obj:`str`
         Loss function: mse, weightmse, l1, ssim, pearson,
         mse_pearson, l1_pearson, ccc, mse_ccc, l1_ccc
+    num_epochs : :obj:`int`
+        Number of epochs
+    lossweights : :obj:`list`
+        Weights to apply to different losses (if ``None``, learned
+        as part of training process)
     learning_rate : :obj:`float`, optional
         Learning rate of Adam optimizer
     weight_decay : :obj:`float`, optional
@@ -89,7 +94,7 @@ class LitAutoencoder(pl.LightningModule):
     noise_std : :obj:`float`, optional
         Noise standard deviation to add to inputs as a way
         of regularizing the training process
-    noise_std : :obj:`float`, optional
+    mask_perc : :obj:`float`, optional
         Percentage of input traces to be masked
     device : :obj:`str`, optional
         Device
@@ -266,8 +271,6 @@ class LitAutoencoder(pl.LightningModule):
     def validation_step(self, val_batch, batch_idx):
         """Single validation step
         """
-        """Single training step
-                """
         if isinstance(self.lossfunc, list):
             losses = {}
 

@@ -43,7 +43,6 @@ def main(parser):
 
     # Experiment number and name
     iexp = setup['exp']['number']
-    expname = setup['exp']['name']
     label = setup['exp']['label']
 
     # Global settings
@@ -374,7 +373,7 @@ def main(parser):
             os.mkdir(figdir)
 
     # Create model to train
-    autoencoder = aetype(nh=ntpatch, nw=nspatch, nenc=nenc,
+    autoencoder = aetype(nh=nspatch, nw=ntpatch, nenc=nenc,
                          kernel_size=kernel_size, nfilts=nfilts,
                          nlayers=nlayers, nlevels=nlevels,
                          physics=RDupop_torch,
@@ -398,7 +397,7 @@ def main(parser):
     callback1 = PlottingCallback(figdir, notebook=False)
 
     # Training
-    dimred = LitAutoencoder(ntpatch, nspatch, nenc,
+    dimred = LitAutoencoder(nspatch, ntpatch, nenc,
                             autoencoder, loss, num_epochs, lossweights=lossweights,
                             learning_rate=learning_rate, weight_decay=weight_decay, betas=betas,
                             adapt_learning=True, lr_scheduler=lr_scheduler, lr_factor=lr_factor,

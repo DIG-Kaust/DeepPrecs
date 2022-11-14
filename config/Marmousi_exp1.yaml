@@ -17,11 +17,10 @@ patching:
   nsjump: 32 # jump of samples in source axis for training patches
   ntjump: 32 # jump of samples in time axis for training patches
 
-
 autoencoder:
   aetype: AutoencoderRes # AE types: AutoencoderBase, AutoencoderRes, AutoencoderMultiRes
-  nenc: 300  # Size of latent space
-  kernel_size: 5  # Size of filters kernels
+  nenc: 300  # size of latent space
+  kernel_size: 5  # size of filters kernels
   nfilts: 32  # number of filters for conv layers in first level (doubles up going down)
   nlayers: 2  # number of layers per level
   nlevels: 2  # number of levels
