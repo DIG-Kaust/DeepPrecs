@@ -104,7 +104,7 @@ class InvertAll():
     def fun(x, yobs, model, Op, distance, device, reg_ae=0.):
         x = torch.from_numpy(x.astype(np.float32).reshape(1, x.shape[0])).to(device)
         y, xdec = Op(x)
-        j = distance(y, yobs).cpu().detach().numpy()
+        j = distance(y.float(), yobs).cpu().detach().numpy()
         if reg_ae > 0:
             xae = model(xdec)
             j += reg_ae * distance(xdec, xae).cpu().detach().numpy()
@@ -115,7 +115,7 @@ class InvertAll():
         x = torch.tensor(x.astype(np.float32).reshape(1, x.shape[0]),
                          requires_grad=True, device=device)
         y, xdec = Op(x)
-        loss = distance(y, yobs)
+        loss = distance(y.float(), yobs)
         if reg_ae > 0:
             xae = model(xdec)
             loss += reg_ae * distance(xdec, xae)

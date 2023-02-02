@@ -4,9 +4,8 @@
 the aid of Deep Preconditioners: this library is implemented on top of Pytorch-Lightning (for network training) and 
 PyLops (for physical operators).
 
-For more details refer to the accompanying paper: **Deep Preconditioners and their application to seismic wavefield processing -
-Ravasi M.** submitted to Frontiers in Earth Science.
-
+For more details refer to the accompanying papers: **Ravasi (2022), Deep Preconditioners and their application to seismic wavefield processing 
+- Frontiers in Earth Science** and **Xu et al. (2022), Intelligent seismic deblending through deep preconditioner - IEEE**.
 
 ## Project structure
 This repository is organized as follows:
@@ -23,6 +22,7 @@ The following notebooks are provided:
 - :orange_book: ``sinusoids/Sinusoid_reconstruction_pl.ipynb``: notebook performing 1D interpolation with deep precondtioners;
 - :orange_book: ``syncline/Syncline_deghosting_pl.ipynb``: notebook performing deghosting of a Syncline shot gather with deep preconditioners (including training);
 - :orange_book: ``syncline/Syncline_deghosting_inferenceonly.ipynb``: notebook performing deghosting of a Syncline shot gather with deep precondtioners (only inference with pre-trained model);
+- :orange_book: ``syncline/Syncline_deblending_pl.ipynb``: notebook performing deblending of a Syncline receiver gather with deep precondtioners (including training);
 - :orange_book: ``marmousi/Marmousi_deghosting_pl.ipynb``: notebook performing deghosting of a Marmousi shot gather with deep preconditioners (including training);
 
 
@@ -52,13 +52,22 @@ configurations may be required for different combinations of workstation and GPU
 
 
 ## Citing :newspaper: :trophy:
-If you find this library useful for your work, please cite the following paper ([ArXiv](https://arxiv.org/abs/2207.09938))
+If you find this library useful for your work, please cite the following papers
 
 ```
 @article{ravasi2022,
 	title={Deep Preconditioners and their application to seismic wavefield processing},
-	author={Ravasi, Matteo},
-	journal={arXiv preprint arXiv:2207.09938},
+	authors={M., Ravasi},
+	journal={Frontiers in Earth Science},
+	year={2022}
+}
+```
+
+```
+@article{ravasi2022,
+	title={Deep Preconditioners and their application to seismic wavefield processing},
+	authors={W. Xu, V. Lipari, P. Bestagini, M. Ravasi, W. Chen, S. Tubaro},
+	journal={IEEE Geoscience and Remote Sensing Letters},
 	year={2022}
 }
 ```
