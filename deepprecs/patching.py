@@ -157,6 +157,61 @@ def patch_scalings(data, Pop, npatches, npatch=(64, 64), plotflag=False, clip=0.
     return scalings
 
 
+def patch_means_and_scalings(data, Pop, npatches, npatch=(64, 64), plotflag=False, clip=0.1, device='cpu'):
+    """Find patches means and scalings
+
+    Find means and scalings for each patch to apply after decoder
+
+    Parameters
+    ----------
+    data : :obj:`numpy.ndarray`
+        Data of size :math:`n_s \times n_r \times n_t`
+    Pop : :obj:`pylops.LinearOperator`
+        Patching operator
+    npatches : :obj:`tuple`
+        Number of patches along both axes
+    npatch : :obj:`tuple`, optional
+        Patch size
+    plotflag : :obj:`tuple`, optional
+        Display random patches
+    clip : :obj:`clip`, optional
+        Clipping used in display
+    device : :obj:`str`, optional
+        Device
+
+    """
+    nspatch, ntpatch = npatch
+
+    # Create patches
+    patches = Pop.H * data.ravel()
+    patches_inend = np.arange(0, nspatch * ntpatch * npatches[0] * npatches[1], nspatch * ntpatch)
+    patches_inend = np.append(patches_inend, nspatch * ntpatch * npatches[0] * npatches[1])
+
+    # Find scalings
+    means = np.zeros(npatches[0] * npatches[1])
+    scalings = np.zeros(npatches[0] * npatches[1])
+
+    if plotflag:
+        fig, axs = plt.subplots(npatches[0], npatches[1], figsize=(16, 4))
+        axs = axs.ravel()
+    for ipatch, (patch_in, patch_end) in enumerate(zip(patches_inend[:-1], patches_inend[1:])):
+        means[ipatch] = np.mean(patches[patch_in:patch_end])
+        scalings[ipatch] = np.max(np.abs(patches[patch_in:patch_end]-means[ipatch]))
+        if scalings[ipatch] == 0.: scalings[ipatch] = 1.
+
+        if plotflag:
+            axs[ipatch].imshow((patches[patch_in:patch_end].reshape(nspatch, ntpatch).T - means[ipatch]) / scalings[ipatch],
+                           cmap='gray', vmin=-clip * np.abs(data).max(), vmax=clip * np.abs(data).max())
+            axs[ipatch].axis('tight')
+            axs[ipatch].axis('off')
+    means = torch.from_numpy(means.astype(np.float32)).to(device).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+    scalings = torch.from_numpy(scalings.astype(np.float32)).to(device).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+    print(f'Scalings {means.squeeze()}')
+    print(f'Means {scalings.squeeze()}')
+
+    return means, scalings
+
+
 def _slidingsteps(ntr, nwin, nover):
     """Identify sliding window initial and end points given overall
     trace length, window length and overlap

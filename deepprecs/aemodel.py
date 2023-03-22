@@ -129,6 +129,8 @@ class Autoencoder(nn.Module):
         x = x.view([self.npatches, self.nenc])
         xdec = self.decode(x)
         x = self.patchesscaling * xdec
+        if self.patchesshift is not None:
+            x = x + self.patchesshift
         x = x.view([-1])
         x = self.patcher.apply(x)
         return x, xdec
@@ -211,13 +213,16 @@ class AutoencoderBase(Autoencoder):
         Apply 1x1 convolution at the bottleneck before linear layer of encoder and after linear layer of decoder
     conv11size : :obj:`int`, optional
         Number of output channels of 1x1 convolution layer
+    patchesshift : :obj:`float`, optional
+        Shift to apply to each patch (optional when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
 
     """
     def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, physics,
                  convbias=True, act_fun='LeakyReLU', dropout=None, downstride=2,
                  downmode='max', upmode='convtransp', bnormlast=True,
                  relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
-                 patcher=None, npatches=None, patchesscaling=None, conv11=False, conv11size=1):
+                 patcher=None, npatches=None, patchesscaling=None, conv11=False, conv11size=1,
+                 patchesshift=None):
         super(AutoencoderBase, self).__init__()
         self.nh, self.nw = nh, nw
         self.nhlatent = nh // (2 ** nlevels)
@@ -227,6 +232,8 @@ class AutoencoderBase(Autoencoder):
         self.patcher = patcher
         self.npatches = npatches
         self.patchesscaling = patchesscaling
+        self.patchesshift = patchesshift
+        self.patchescaling = patchescaling
         self.reluflag_enc = relu_enc
         self.tanhflag_enc = tanh_enc
         self.reluflag_dec = relu_dec
@@ -342,17 +349,15 @@ class AutoencoderSymmetric(Autoencoder):
         Number of patches (required when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
     patchesscaling : :obj:`torch.tensor`, optional
         Scalings to apply to each patch (required when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
-    conv11 : :obj:`bool`, optional
-        Apply 1x1 convolution at the bottleneck before linear layer of encoder and after linear layer of decoder
-    conv11size : :obj:`int`, optional
-        Number of output channels of 1x1 convolution layer
+    patchesshift : :obj:`float`, optional
+        Shift to apply to each patch (optional when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
 
     """
     def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, physics,
                  convbias=True, act_fun='LeakyReLU', dropout=None, downstride=2,
                  downmode='max', upmode='convtransp', bnormlast=True,
                  relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
-                 patcher=None, npatches=None, patchesscaling=None):
+                 patcher=None, npatches=None, patchesscaling=None, patchesshift=None):
         super(AutoencoderSymmetric, self).__init__()
         self.nh, self.nw = nh, nw
         self.nhlatent = nh // (2 ** nlevels)
@@ -362,6 +367,7 @@ class AutoencoderSymmetric(Autoencoder):
         self.patcher = patcher
         self.npatches = npatches
         self.patchesscaling = patchesscaling
+        self.patchesshift = patchesshift
         self.reluflag_enc = relu_enc
         self.tanhflag_enc = tanh_enc
         self.reluflag_dec = relu_dec
@@ -476,13 +482,15 @@ class AutoencoderRes(Autoencoder):
         Apply 1x1 convolution at the bottleneck before linear layer of encoder and after linear layer of decoder
     conv11size : :obj:`int`, optional
         Number of output channels of 1x1 convolution layer
+    patchesshift : :obj:`float`, optional
+        Shift to apply to each patch (optional when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
 
     """
     def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, physics,
                  convbias=True, act_fun='LeakyReLU', dropout=None, downstride=1,
                  downmode='max', upmode='convtransp', bnormlast=True,
                  relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
-                 patcher=None, npatches=None, patchesscaling=None, conv11=False, conv11size=1):
+                 patcher=None, npatches=None, patchesscaling=None, conv11=False, conv11size=1, patchesshift=None):
         super(AutoencoderRes, self).__init__()
         self.nh, self.nw = nh, nw
         self.nhlatent = nh // (2 ** nlevels)
@@ -492,6 +500,7 @@ class AutoencoderRes(Autoencoder):
         self.patcher = patcher
         self.npatches = npatches
         self.patchesscaling = patchesscaling
+        self.patchesshift = patchesshift
         self.reluflag_enc = relu_enc
         self.tanhflag_enc = tanh_enc
         self.reluflag_dec = relu_dec
@@ -608,13 +617,15 @@ class AutoencoderMultiRes(Autoencoder):
         Apply 1x1 convolution at the bottleneck before linear layer of encoder and after linear layer of decoder
     conv11size : :obj:`int`, optional
         Number of output channels of 1x1 convolution layer
+    patchesshift : :obj:`float`, optional
+        Shift to apply to each patch (optional when using :func:`deepprecs.model.Autoencoder.patched_decode` method)
 
     """
     def __init__(self, nh, nw, nenc, kernel_size, nfilts, nlayers, nlevels, physics,
                  convbias=True, act_fun='LeakyReLU', dropout=None, downstride=2,
                  downmode='max', upmode='convtransp', bnormlast=True,
                  relu_enc=False, tanh_enc=False, relu_dec=False, tanh_final=False,
-                 patcher=None, npatches=None, patchesscaling=None, conv11=False, conv11size=1):
+                 patcher=None, npatches=None, patchesscaling=None, conv11=False, conv11size=1, patchesshift=None):
         super(AutoencoderMultiRes, self).__init__()
         self.nh, self.nw = nh, nw
         self.nhlatent = nh // (2 ** nlevels)
@@ -624,6 +635,7 @@ class AutoencoderMultiRes(Autoencoder):
         self.patcher = patcher
         self.npatches = npatches
         self.patchesscaling = patchesscaling
+        self.patchesshift = patchesshift
         self.reluflag_enc = relu_enc
         self.tanhflag_enc = tanh_enc
         self.reluflag_dec = relu_dec

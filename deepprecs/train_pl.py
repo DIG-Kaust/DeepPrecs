@@ -380,10 +380,14 @@ class PlottingCallback(Callback):
 
     """
 
-    def __init__(self, figdir, notebook=True):
+    def __init__(self, figdir, figsize=(16, 8), notebook=True, vmin=-1, vmax=1, cmap='gray'):
         super().__init__()
         self.figdir = figdir
+        self.figsize = figsize
         self.notebook = notebook
+        self.vmin = vmin
+        self.vmax = vmax
+        self.cmap = cmap
         self.epoch = 0
 
     def on_validation_epoch_end(self, trainer, pl_module):
@@ -391,13 +395,15 @@ class PlottingCallback(Callback):
             inp = trainer.model.inp
             out = trainer.model.out
 
-            plt.figure(figsize=(16, 8))
+            plt.figure(figsize=self.figsize)
             plt.subplot(1, 2, 1)
-            show_tensor_images(inp.transpose(3, 2))
+            show_tensor_images(inp.transpose(3, 2), vmin=self.vmin, vmax=self.vmax, cmap=self.cmap)
             plt.title("True (Epoch %d)" % self.epoch)
+            plt.axis("tight")
             plt.subplot(1, 2, 2)
-            show_tensor_images(out.transpose(3, 2))
+            show_tensor_images(out.transpose(3, 2), vmin=self.vmin, vmax=self.vmax, cmap=self.cmap)
             plt.title("Reconstructed (Epoch %d)" % self.epoch)
+            plt.axis("tight")
             if self.figdir is not None:
                 plt.savefig(os.path.join(self.figdir, 'valid_rec_epoch%d.png' %
                                          self.epoch), bbox_inches='tight')
@@ -406,4 +412,4 @@ class PlottingCallback(Callback):
             else:
                 plt.close()
 
-        self.epoch +=1
+        self.epoch += 1
