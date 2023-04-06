@@ -4,8 +4,8 @@
 the aid of Deep Preconditioners: this library is implemented on top of Pytorch-Lightning (for network training) and 
 PyLops (for physical operators).
 
-For more details refer to the accompanying papers: **Ravasi (2022), Deep Preconditioners and their application to seismic wavefield processing 
-- Frontiers in Earth Science** and **Xu et al. (2022), Intelligent seismic deblending through deep preconditioner - IEEE**.
+For more details refer to the accompanying papers: **Ravasi (2022), Deep Preconditioners and their application to seismic wavefield processing - Frontiers in Earth Science** 
+and **Xu et al. (2022), Intelligent seismic deblending through deep preconditioner - IEEE**.
 
 ## Project structure
 This repository is organized as follows:
@@ -64,7 +64,7 @@ If you find this library useful for your work, please cite the following papers
 ```
 
 ```
-@article{ravasi2022,
+@article{xu2022,
 	title={Deep Preconditioners and their application to seismic wavefield processing},
 	authors={W. Xu, V. Lipari, P. Bestagini, M. Ravasi, W. Chen, S. Tubaro},
 	journal={IEEE Geoscience and Remote Sensing Letters},
