@@ -20,11 +20,10 @@ classifiers = [
         "Topic :: Scientific/Engineering :: Mathematics",
     ]
 dependencies = [
-	"cupy-cuda113",
+	"torch",
 	"torchsummary",
     "pytorch-msssim",
     "pytorch-lightning",
-    "setuptools_scm",
     ]
 
 dynamic = ["version"]
